@@ -85,11 +85,6 @@ module Music
   ]
   
   class MusicStructure
-    # Return the next MusicEvent in its prepared state.
-    def next
-      @next.prepare if @next
-    end
-    
     # Sequencing
     def >>(structure)
       @next = structure
@@ -97,6 +92,13 @@ module Music
     
     def has_next?
       !@next.nil?
+    end
+    
+    def next_structure; @next end
+    
+    # Return the next MusicEvent in its prepared state.
+    def next
+      @next.prepare if @next
     end
     
     # Prepare the structure before generating an event.
@@ -108,6 +110,10 @@ module Music
     
     def surface
       Surface.new(self)
+    end
+    
+    def structure
+      StructureIterator.new(self)
     end
   end
   
@@ -121,8 +127,8 @@ module Music
   class Surface
     include Enumerable
     
-    def initialize(start)
-      @start   = start
+    def initialize(head)
+      @head    = head
       @surface = []
       generate
     end
@@ -133,12 +139,29 @@ module Music
     
     def generate
       @surface.clear
-      return if @start.nil?
-      cursor = @start
+      return if @head.nil?
+      cursor = @head
       
       begin
         @surface << cursor.generate(self)
       end while cursor = cursor.next
+    end
+  end
+  
+  class StructureIterator
+    include Enumerable
+    
+    def initialize(head)
+      @head = head
+    end
+    
+    def each
+      return if @head.nil?
+      cursor = @head
+      
+      begin
+        yield cursor
+      end while cursor = cursor.next_structure
     end
   end
   
