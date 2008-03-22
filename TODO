@@ -1,10 +1,8 @@
 # TODO:
-# * MusicEvent#prev, pprev
 # * Probability
 # * Markov
 # * Polyphonic support
 # * Music::Performance::OSC
 # * Music::Performance::MIDI
-# * Music::Performance::SMF
-# * support functions: mtof, ftom, etc
+# * Polyphonic Music::Performance::SMF
 # * rational durations
