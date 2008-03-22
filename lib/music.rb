@@ -211,27 +211,6 @@ module Music
     end
   end
   
-  class Voice
-    include Enumerable
-    
-    attr :start_event
-    
-    def initialize; yield self end
-    
-    def >>(event)
-      @start_event = event
-    end
-    
-    def each
-      return if @start_event.nil?
-      current_event = @start_event
-
-      begin
-        yield current_event
-      end while current_event = current_event.next
-    end
-  end
-  
   require 'smf'
   
   # Standard Midi File performance.
@@ -279,5 +258,5 @@ if __FILE__ == $0
   s = random_voice.surface
   puts s.map { |note| note.pitch_class } * ', '
   
-  Music::SMFPerformance.new(random_voice.surface, 'example').perform.save
+  Music::SMFPerformance.new(s, 'example').perform.save
 end
