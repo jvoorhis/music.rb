@@ -22,24 +22,66 @@ end
 
 module Music
   
-  class PitchClass < Struct.new(:name, :ord)
+  def self.log2(x)
+    Math.log(x) / Math.log(2)
+  end 
+  
+  # Convert midi note numbers to hertz
+  def self.mtof(pitch)
+    440.0 * (2 ** (((pitch)-69)/12))
+  end
+  
+  # Convert hertz to midi note numbers
+  def self.ftom(pitch)
+    (69 + 12 * (log2(pitch / 440.0))).round
+  end
+  
+  # Cast pitch value as a midi note number.
+  def self.Midi(pitch)
+    case pitch
+      when Integer then pitch 
+      when Float then ftom(pitch)
+      else raise ArgumentError, "Cannot cast #{pitch.class} to midi."
+    end
+  end
+  
+  # Cast pitch value as hertz.
+  def self.Hertz(pitch)
+    case pitch
+      when Integer then mtof(pitch)
+      when Float then pitch
+      else raise ArgumentError, "Cannot cast #{pitch.class} to hertz."
+    end
+  end
+  
+  class PitchClass
+    include Comparable
+    
+    attr_reader :name, :ord
+    
+    def initialize(name, ord)
+      @name, @ord = name, ord
+    end
+    
+    def <=>(pc) ord <=> pc.ord end
+    
     def to_s; name.to_s end
   end
   
   # Western pitch classes. Accidental note names borrowed from LilyPond.
   PITCH_CLASSES = [
-    PitchClass[:c, 0],
-    PitchClass[:cis, 1],
-    PitchClass[:d, 2],
-    PitchClass[:dis, 3],
-    PitchClass[:e, 4],
-    PitchClass[:f, 5],
-    PitchClass[:fis, 6],
-    PitchClass[:g, 7],
-    PitchClass[:gis, 8],
-    PitchClass[:a, 9],
-    PitchClass[:ais, 10],
-    PitchClass[:b, 11]
+    PitchClass.new(:c, 0),
+    PitchClass.new(:cis, 1),
+    PitchClass.new(:d, 2),
+    PitchClass.new(:dis, 3),
+    PitchClass.new(:e, 4),
+    PitchClass.new(:f, 5),
+    PitchClass.new(:fis, 6),
+    PitchClass.new(:g, 7),
+    PitchClass.new(:gis, 8),
+    PitchClass.new(:a, 9),
+    PitchClass.new(:ais, 10),
+    PitchClass.new(:b, 1)
   ]
   
   class MusicEvent
@@ -84,7 +126,7 @@ module Music
   end
   
   # Remain silent for the duration.
-  class Rest < MusicEvent
+  class Silence < MusicEvent
     attr :duration
     
     def initialize(duration)
@@ -92,7 +134,7 @@ module Music
     end
     
     def perform(performance)
-      performance.play_rest(self)
+      performance.play_silence(self)
     end
   end
   
@@ -113,11 +155,11 @@ module Music
   end
   
   ::Kernel.module_eval do
-    def note(pitch, duration=0.5)
+    def note(pitch, duration=128)
       Note.new(pitch, duration)
     end
     
-    def rest(duration=0.5)
+    def rest(duration=128)
       Rest.new(duration)
     end
     
@@ -147,20 +189,40 @@ module Music
     end
   end
   
-  module Performance
+  require 'smf'
+  
+  # Standard Midi File performance.
+  class SMFPerformance
+    include SMF
     
-    class OSC
-      def initialize(score)
-        @score = score
-      end
-      
-      def perform
-        @score.each { |event| event.play(self) }
-      end
-      
-      def play_note; end
-      
-      def play_rest; end
+    def initialize(voice, seq_name)
+      @voice = voice
+      @filename = seq_name + '.mid'
+      @seq = Sequence.new
+      @track = Track.new
+      @seq << @track
+      @track << SequenceName.new(0, seq_name)
+      @channel = 1
+      @offset = 0
+    end
+    
+    def perform
+      @voice.each { |event| event.perform(self) }
+      self
+    end
+    
+    def save
+      @seq.save(@filename)
+    end
+    
+    def play_note(ev)
+      @track << NoteOn.new(@offset, @channel, Music.Midi(ev.pitch), 64)
+      @offset += ev.duration
+      @track << NoteOff.new(@offset, @channel, Music.Midi(ev.pitch), 64)
+    end
+    
+    def play_silence(ev)
+      @offset += ev.duration
     end
   end
 end
@@ -172,5 +234,8 @@ if __FILE__ == $0
     end
   end
   
-  puts random_voice.map { |note| note.pitch_class } * ', '
+  voice = random_voice
+  puts voice.map { |note| note.pitch_class } * ', '
+  
+  Music::SMFPerformance.new(voice, 'example').perform.save
 end
