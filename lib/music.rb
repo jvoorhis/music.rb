@@ -84,27 +84,61 @@ module Music
     PitchClass.new(:b, 1)
   ]
   
-  class MusicEvent
+  class MusicStructure
     # Return the next MusicEvent in its prepared state.
     def next
       @next.prepare if @next
     end
     
-    # Sequence +event+ after this event.
-    def >>(event)
-      @next = event
+    # Sequencing
+    def >>(structure)
+      @next = structure
     end
     
     def has_next?
       !@next.nil?
     end
     
-    # Prepare the event for its performance.
+    # Prepare the structure before generating an event.
     def prepare; self end
     
+    def generate(surface)
+      raise NotImplementedError, "Subclass responsibility"
+    end
+    
+    def surface
+      Surface.new(self)
+    end
+  end
+  
+  class MusicEvent
     # Call +MusicEvent#perform+ with a performance visitor.
     def perform(performance)
       raise NotImplementedError, "Subclass responsibility"
+    end
+  end
+  
+  class Surface
+    include Enumerable
+    
+    def initialize(start)
+      @start   = start
+      @surface = []
+      generate
+    end
+    
+    def [](key) @surface[key] end
+    
+    def each(&block) @surface.each(&block) end
+    
+    def generate
+      @surface.clear
+      return if @start.nil?
+      cursor = @start
+      
+      begin
+        @surface << cursor.generate(self)
+      end while cursor = cursor.next
     end
   end
   
@@ -138,8 +172,16 @@ module Music
     end
   end
   
-  # Choose randomly from given events.
-  class Choice < MusicEvent
+  class LiteralEvent < MusicStructure
+    def initialize(event)
+      @event = event
+    end
+    
+    def generate(surface) @event.dup end
+  end
+  
+  # Choose randomly from given structures, then proceed.
+  class Choice < MusicStructure
     def initialize(*choices)
       @choices = choices
     end
@@ -156,12 +198,13 @@ module Music
   
   ::Kernel.module_eval do
     def note(pitch, duration=128)
-      Note.new(pitch, duration)
+      LiteralEvent.new(Note.new(pitch, duration))
     end
     
-    def rest(duration=128)
-      Rest.new(duration)
+    def silence(duration=128)
+      LiteralEvent.new(Silence.new(duration))
     end
+    alias :rest :silence
     
     def choice(*events)
       Choice.new(*events)
@@ -195,8 +238,8 @@ module Music
   class SMFPerformance
     include SMF
     
-    def initialize(voice, seq_name)
-      @voice = voice
+    def initialize(surface, seq_name)
+      @surface = surface
       @filename = seq_name + '.mid'
       @seq = Sequence.new
       @track = Track.new
@@ -207,7 +250,7 @@ module Music
     end
     
     def perform
-      @voice.each { |event| event.perform(self) }
+      @surface.each { |event| event.perform(self) }
       self
     end
     
@@ -229,13 +272,12 @@ end
 
 if __FILE__ == $0
   def random_voice
-    Music::Voice.new do |voice|
-      voice >> (lbl=note(60)) >> note(62) >> note(64) >> choice(lbl, note(62)) >> note(60)
-    end
+    (lbl=note(60)) >> note(62) >> note(64) >> choice(lbl, note(62)) >> note(60)
+    lbl
   end
   
-  voice = random_voice
-  puts voice.map { |note| note.pitch_class } * ', '
+  s = random_voice.surface
+  puts s.map { |note| note.pitch_class } * ', '
   
-  Music::SMFPerformance.new(voice, 'example').perform.save
+  Music::SMFPerformance.new(random_voice.surface, 'example').perform.save
 end
