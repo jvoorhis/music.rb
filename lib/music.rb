@@ -257,6 +257,21 @@ module Music
     end
   end
   
+  class Repeat < MusicStructure
+    def initialize(repititions, structure)
+      @repititions, @structure = repititions, structure
+    end
+    
+    def prepare
+      if @repititions.zero?
+        @next.prepare if @next
+      else
+        @repititions -= 1
+        @structure.prepare
+      end
+    end
+  end
+  
   ::Kernel.module_eval do
     def silence(duration=128)
       Constant.new(Silence.new(duration))
@@ -271,12 +286,16 @@ module Music
       Constant.new(Chord.new(pitches, duration, effort))
     end
     
-    def choice(*events)
-      Choice.new(*events)
+    def choice(*structures)
+      Choice.new(*structures)
     end
     
-    def cycle(*events)
-      Cycle.new(*events)
+    def cycle(*structures)
+      Cycle.new(*structures)
+    end
+    
+    def repeat(rep, structure)
+      Repeat.new(rep, structure)
     end
   end
   
@@ -334,6 +353,7 @@ if __FILE__ == $0
       note(62) >>
       cycle(note(64), note(71)) >>
       choice(lbl, note(62)) >>
+      repeat(3, lbl) >>
       chord([60, 67, 72], 256, [127, 72, 96])
     lbl
   end
