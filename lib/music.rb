@@ -216,7 +216,7 @@ module Music
     end
   end
   
-  class LiteralEvent < MusicStructure
+  class Constant < MusicStructure
     def initialize(event)
       @event = event
     end
@@ -242,16 +242,16 @@ module Music
   
   ::Kernel.module_eval do
     def silence(duration=128)
-      LiteralEvent.new(Silence.new(duration))
+      Constant.new(Silence.new(duration))
     end
     alias :rest :silence
     
     def note(pitch, duration=128, effort=64)
-      LiteralEvent.new(Note.new(pitch, duration, effort))
+      Constant.new(Note.new(pitch, duration, effort))
     end
     
     def chord(pitches, duration=128, effort=64)
-      LiteralEvent.new(Chord.new(pitches, duration, effort))
+      Constant.new(Chord.new(pitches, duration, effort))
     end
     
     def choice(*events)
