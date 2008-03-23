@@ -36,8 +36,8 @@ module Music
     (69 + 12 * (log2(pitch / 440.0))).round
   end
   
-  # Cast pitch value as a midi note number.
-  def self.Midi(pitch)
+  # Cast pitch value as a midi pitch number.
+  def self.MidiPitch(pitch)
     case pitch
       when Integer then pitch 
       when Float then ftom(pitch)
@@ -57,6 +57,10 @@ module Music
   class PitchClass
     include Comparable
     
+    def self.for(pitch)
+      PITCH_CLASSES.detect { |pc| pc.ord == pitch % 12 }
+    end
+    
     attr_reader :name, :ord
     
     def initialize(name, ord)
@@ -66,23 +70,18 @@ module Music
     def <=>(pc) ord <=> pc.ord end
     
     def to_s; name.to_s end
+    
+    # Western pitch classes. Accidental note names borrowed from LilyPond.
+    PITCH_CLASSES = [
+      new(:c, 0), new(:cis, 1),
+      new(:d, 2), new(:dis, 3),
+      new(:e, 4),
+      new(:f, 5), new(:fis, 6),
+      new(:g, 7), new(:gis, 8),
+      new(:a, 9), new(:ais, 10),
+      new(:b, 1)
+    ]
   end
-  
-  # Western pitch classes. Accidental note names borrowed from LilyPond.
-  PITCH_CLASSES = [
-    PitchClass.new(:c, 0),
-    PitchClass.new(:cis, 1),
-    PitchClass.new(:d, 2),
-    PitchClass.new(:dis, 3),
-    PitchClass.new(:e, 4),
-    PitchClass.new(:f, 5),
-    PitchClass.new(:fis, 6),
-    PitchClass.new(:g, 7),
-    PitchClass.new(:gis, 8),
-    PitchClass.new(:a, 9),
-    PitchClass.new(:ais, 10),
-    PitchClass.new(:b, 1)
-  ]
   
   class MusicStructure
     # Sequencing
@@ -165,6 +164,19 @@ module Music
     end
   end
   
+  # Remain silent for the duration.
+  class Silence < MusicEvent
+    attr :duration
+    
+    def initialize(duration)
+      @duration = duration
+    end
+    
+    def perform(performance)
+      performance.play_silence(self)
+    end
+  end
+  
   # A note has a steady pitch and a duration.
   class Note < MusicEvent
     attr_reader :pitch, :duration
@@ -178,20 +190,23 @@ module Music
     end
     
     def pitch_class
-      PITCH_CLASSES.detect { |pc| pc.ord == pitch % 12 }
+      PitchClass.for(@pitch)
     end
   end
   
-  # Remain silent for the duration.
-  class Silence < MusicEvent
-    attr :duration
+  class Chord < MusicEvent
+    attr_reader :pitches, :duration
     
-    def initialize(duration)
-      @duration = duration
+    def initialize(pitches, duration)
+      @pitches, @duration = pitches, duration
     end
     
     def perform(performance)
-      performance.play_silence(self)
+      performance.play_chord(self)
+    end
+    
+    def pitch_class
+      @pitches.map { |pitch| PitchClass.for(pitch) }
     end
   end
   
@@ -220,14 +235,18 @@ module Music
   end
   
   ::Kernel.module_eval do
-    def note(pitch, duration=128)
-      LiteralEvent.new(Note.new(pitch, duration))
-    end
-    
     def silence(duration=128)
       LiteralEvent.new(Silence.new(duration))
     end
     alias :rest :silence
+    
+    def note(pitch, duration=128)
+      LiteralEvent.new(Note.new(pitch, duration))
+    end
+    
+    def chord(pitches, duration=128)
+      LiteralEvent.new(Chord.new(pitches, duration))
+    end
     
     def choice(*events)
       Choice.new(*events)
@@ -260,21 +279,31 @@ module Music
       @seq.save(@filename)
     end
     
-    def play_note(ev)
-      @track << NoteOn.new(@offset, @channel, Music.Midi(ev.pitch), 64)
-      @offset += ev.duration
-      @track << NoteOff.new(@offset, @channel, Music.Midi(ev.pitch), 64)
-    end
-    
     def play_silence(ev)
       @offset += ev.duration
+    end
+    
+    def play_note(ev)
+      @track << NoteOn.new(@offset, @channel, Music.MidiPitch(ev.pitch), 64)
+      @offset += ev.duration
+      @track << NoteOff.new(@offset, @channel, Music.MidiPitch(ev.pitch), 64)
+    end
+    
+    def play_chord(ev)
+      for pitch in ev.pitches
+        @track << NoteOn.new(@offset, @channel, Music.MidiPitch(pitch), 64)
+      end
+      @offset += ev.duration
+      for pitch in ev.pitches
+        @track << NoteOff.new(@offset, @channel, Music.MidiPitch(pitch), 64)
+      end
     end
   end
 end
 
 if __FILE__ == $0
   def random_voice
-    (lbl=note(60)) >> note(62) >> note(64) >> choice(lbl, note(62)) >> note(60)
+    (lbl=note(60)) >> note(62) >> note(64) >> choice(lbl, note(62)) >> chord([60, 67, 72])
     lbl
   end
   

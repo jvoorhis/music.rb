@@ -6,3 +6,4 @@
 # * Music::Performance::MIDI
 # * Polyphonic Music::Performance::SMF
 # * rational durations
+# * Loudness / Velocity / Effort / Dynamics?
