@@ -1,5 +1,5 @@
 # music.rb is symbolic musical computation for Ruby.
-# Copyright (C) 2008 Jeremy Voorhis
+# Copyright (C) 2008 Jeremy Voorhis <jvoorhis@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -348,7 +348,7 @@ module Music
 end
 
 if __FILE__ == $0
-  def random_voice
+  def example
     (lbl=note(60)) >>
       note(62) >>
       cycle(note(64), note(71)) >>
@@ -358,7 +358,7 @@ if __FILE__ == $0
     lbl
   end
   
-  s = random_voice.surface
+  s = example.surface
   puts s.map { |note| note.pitch_class } * ', '
   
   Music::SMFPerformance.new(s, 'example').perform.save
