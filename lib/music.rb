@@ -179,10 +179,10 @@ module Music
   
   # A note has a steady pitch and a duration.
   class Note < MusicEvent
-    attr_reader :pitch, :duration
+    attr_reader :pitch, :duration, :effort
     
-    def initialize(pitch, duration)
-      @pitch, @duration = pitch, duration
+    def initialize(pitch, duration, effort)
+      @pitch, @duration, @effort = pitch, duration, effort
     end
     
     def perform(performance)
@@ -195,10 +195,16 @@ module Music
   end
   
   class Chord < MusicEvent
-    attr_reader :pitches, :duration
+    attr_reader :pitches, :duration, :effort
     
-    def initialize(pitches, duration)
-      @pitches, @duration = pitches, duration
+    def initialize(pitches, duration, effort)
+      @pitches, @duration, @effort = pitches, duration, effort
+    end
+    
+    # Iterate over each pitch in the chord, with its corresponding effort value.
+    def pitch_with_effort
+      e = Array(effort)
+      @pitches.each_with_index { |p, i| yield([p, e[i % e.size]]) }
     end
     
     def perform(performance)
@@ -240,12 +246,12 @@ module Music
     end
     alias :rest :silence
     
-    def note(pitch, duration=128)
-      LiteralEvent.new(Note.new(pitch, duration))
+    def note(pitch, duration=128, effort=64)
+      LiteralEvent.new(Note.new(pitch, duration, effort))
     end
     
-    def chord(pitches, duration=128)
-      LiteralEvent.new(Chord.new(pitches, duration))
+    def chord(pitches, duration=128, effort=64)
+      LiteralEvent.new(Chord.new(pitches, duration, effort))
     end
     
     def choice(*events)
@@ -284,18 +290,18 @@ module Music
     end
     
     def play_note(ev)
-      @track << NoteOn.new(@offset, @channel, Music.MidiPitch(ev.pitch), 64)
+      @track << NoteOn.new(@offset, @channel, Music.MidiPitch(ev.pitch), ev.effort)
       @offset += ev.duration
-      @track << NoteOff.new(@offset, @channel, Music.MidiPitch(ev.pitch), 64)
+      @track << NoteOff.new(@offset, @channel, Music.MidiPitch(ev.pitch), ev.effort)
     end
     
     def play_chord(ev)
-      for pitch in ev.pitches
-        @track << NoteOn.new(@offset, @channel, Music.MidiPitch(pitch), 64)
+      ev.pitch_with_effort do |pitch, effort|
+        @track << NoteOn.new(@offset, @channel, Music.MidiPitch(pitch), effort)
       end
       @offset += ev.duration
-      for pitch in ev.pitches
-        @track << NoteOff.new(@offset, @channel, Music.MidiPitch(pitch), 64)
+      ev.pitch_with_effort do |pitch, effort|
+        @track << NoteOff.new(@offset, @channel, Music.MidiPitch(pitch), effort)
       end
     end
   end
@@ -303,7 +309,7 @@ end
 
 if __FILE__ == $0
   def random_voice
-    (lbl=note(60)) >> note(62) >> note(64) >> choice(lbl, note(62)) >> chord([60, 67, 72])
+    (lbl=note(60)) >> note(62) >> note(64) >> choice(lbl, note(62)) >> chord([60, 67, 72], 256, [127, 72, 96])
     lbl
   end
   
