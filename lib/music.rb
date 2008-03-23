@@ -79,7 +79,7 @@ module Music
       new(:f, 5), new(:fis, 6),
       new(:g, 7), new(:gis, 8),
       new(:a, 9), new(:ais, 10),
-      new(:b, 1)
+      new(:b, 11)
     ]
   end
   
@@ -231,12 +231,29 @@ module Music
     end
     
     def prepare
-      event = @choices.rand
-      unless event.has_next?
-        event = event.dup
-        event >> @next
+      choice = @choices.rand
+      unless choice.has_next?
+        choice = choice.dup
+        choice >> @next
       end
-      event.prepare
+      choice.prepare
+    end
+  end
+  
+  class Cycle < MusicStructure
+    def initialize(*structures)
+      @structures = structures
+      @pos = @structures.size
+    end
+    
+    def prepare
+      structure = @structures[ @pos %= @structures.size ]
+      @pos += 1
+      unless structure.has_next?
+        structure = structure.dup
+        structure >> @next
+      end
+      structure.prepare
     end
   end
   
@@ -256,6 +273,10 @@ module Music
     
     def choice(*events)
       Choice.new(*events)
+    end
+    
+    def cycle(*events)
+      Cycle.new(*events)
     end
   end
   
@@ -309,7 +330,11 @@ end
 
 if __FILE__ == $0
   def random_voice
-    (lbl=note(60)) >> note(62) >> note(64) >> choice(lbl, note(62)) >> chord([60, 67, 72], 256, [127, 72, 96])
+    (lbl=note(60)) >>
+      note(62) >>
+      cycle(note(64), note(71)) >>
+      choice(lbl, note(62)) >>
+      chord([60, 67, 72], 256, [127, 72, 96])
     lbl
   end
   
