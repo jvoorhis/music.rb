@@ -305,8 +305,7 @@ module Music
   class SMFPerformance
     include SMF
     
-    def initialize(surface, seq_name)
-      @surface = surface
+    def initialize(seq_name)
       @filename = seq_name + '.mid'
       @seq = Sequence.new
       @track = Track.new
@@ -316,8 +315,8 @@ module Music
       @offset = 0
     end
     
-    def perform
-      @surface.each { |event| event.perform(self) }
+    def perform(surface)
+      surface.each { |event| event.perform(self) }
       self
     end
     
@@ -361,5 +360,5 @@ if __FILE__ == $0
   s = example.surface
   puts s.map { |note| note.pitch_class } * ', '
   
-  Music::SMFPerformance.new(s, 'example').perform.save
+  Music::SMFPerformance.new('example').perform(s).save
 end
