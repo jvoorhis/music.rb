@@ -305,8 +305,8 @@ module Music
   class SMFPerformance
     include SMF
     
-    def initialize(seq_name)
-      @filename = seq_name + '.mid'
+    def initialize(options={})
+      seq_name = options.fetch(:seq_name, "Sequence 1")
       @seq = Sequence.new
       @track = Track.new
       @seq << @track
@@ -320,8 +320,9 @@ module Music
       self
     end
     
-    def save
-      @seq.save(@filename)
+    def save(basename)
+      filename = basename + '.mid'
+      @seq.save(filename)
     end
     
     def play_silence(ev)
@@ -360,5 +361,5 @@ if __FILE__ == $0
   s = example.surface
   puts s.map { |note| note.pitch_class } * ', '
   
-  Music::SMFPerformance.new('example').perform(s).save
+  Music::SMFPerformance.new.perform(s).save('example')
 end
