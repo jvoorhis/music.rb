@@ -306,17 +306,17 @@ module Music
     include SMF
     
     def initialize(options={})
-      seq_name = options.fetch(:seq_name, "Sequence 1")
-      @seq = Sequence.new
-      @track = Track.new
-      @seq << @track
-      @track << SequenceName.new(0, seq_name)
-      @channel = 1
-      @offset = 0
+      @seq, @seqn  = Sequence.new, 0
     end
     
-    def perform(surface)
+    def perform(surface, options={})
+      @track = Track.new
+      seq_name = options.fetch(:name, gen_seq_name)
+      @track << SequenceName.new(0, seq_name)
+      @channel = options.fetch(:channel, 1)
+      @offset = 0
       surface.each { |event| event.perform(self) }
+      @seq << @track
       self
     end
     
@@ -344,6 +344,12 @@ module Music
         @track << NoteOff.new(@offset, @channel, Music.MidiPitch(pitch), effort)
       end
     end
+    
+    private
+      def gen_seq_name
+        @seqn += 1
+        "Untitled #@seqn"
+      end
   end
 end
 
@@ -352,9 +358,9 @@ if __FILE__ == $0
     (lbl=note(60)) >>
       note(62) >>
       cycle(note(64), note(71)) >>
-      choice(lbl, note(62)) >>
-      repeat(3, lbl) >>
-      chord([60, 67, 72], 256, [127, 72, 96])
+      choice(lbl, 
+        repeat(3, lbl) >>
+        chord([60, 67, 72], 256, [127, 72, 96]))
     lbl
   end
   
