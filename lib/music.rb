@@ -273,16 +273,17 @@ module Music
   end
   
   ::Kernel.module_eval do
-    def silence(duration=128)
+    
+    def silence(duration=1)
       Constant.new(Silence.new(duration))
     end
     alias :rest :silence
     
-    def note(pitch, duration=128, effort=64)
+    def note(pitch, duration=1, effort=64)
       Constant.new(Note.new(pitch, duration, effort))
     end
     
-    def chord(pitches, duration=128, effort=64)
+    def chord(pitches, duration=1, effort=64)
       Constant.new(Chord.new(pitches, duration, effort))
     end
     
@@ -299,6 +300,23 @@ module Music
     end
   end
   
+  class MidiTime
+    attr :resolution
+    
+    def initialize(res)
+      @resolution = res
+    end
+    
+    def divisions(val)
+      case val
+        when Numeric
+          (val * resolution).round.to_i
+        else
+          raise ArgumentError, "Cannot convert #{val}:#{val.class} to midi time."
+      end
+    end
+  end
+  
   require 'smf'
   
   # Standard Midi File performance.
@@ -306,7 +324,8 @@ module Music
     include SMF
     
     def initialize(options={})
-      @seq, @seqn  = Sequence.new, 0
+      @time = MidiTime.new(options.fetch(:resolution, 96))
+      @seq  = Sequence.new(1, @time.resolution)
     end
     
     def perform(surface, options={})
@@ -326,12 +345,12 @@ module Music
     end
     
     def play_silence(ev)
-      @offset += ev.duration
+      advance(ev)
     end
     
     def play_note(ev)
       @track << NoteOn.new(@offset, @channel, Music.MidiPitch(ev.pitch), ev.effort)
-      @offset += ev.duration
+      advance(ev)
       @track << NoteOff.new(@offset, @channel, Music.MidiPitch(ev.pitch), ev.effort)
     end
     
@@ -339,15 +358,20 @@ module Music
       ev.pitch_with_effort do |pitch, effort|
         @track << NoteOn.new(@offset, @channel, Music.MidiPitch(pitch), effort)
       end
-      @offset += ev.duration
+      advance(ev)
       ev.pitch_with_effort do |pitch, effort|
         @track << NoteOff.new(@offset, @channel, Music.MidiPitch(pitch), effort)
       end
     end
     
     private
+      def advance(ev)
+        @offset += @time.divisions(ev.duration)
+      end
+      
       def gen_seq_name
-        @seqn += 1
+        @seqn ||= 0
+        @seqn  += 1
         "Untitled #@seqn"
       end
   end
@@ -360,12 +384,14 @@ if __FILE__ == $0
       cycle(note(64), note(71)) >>
       choice(lbl, 
         repeat(3, lbl) >>
-        chord([60, 67, 72], 256, [127, 72, 96]))
+        chord([60, 67, 72], 2, [127, 72, 96]))
     lbl
   end
   
   s = example.surface
-  puts s.map { |note| note.pitch_class } * ', '
+  puts s.map { |note| Music::Chord === note ?
+                          "<#{note.pitch_class * ', '}>" :
+                          note.pitch_class                     } * ', '
   
-  Music::SMFPerformance.new.perform(s).save('example')
+  Music::SMFPerformance.new.perform(s, :name => "Example").save('example')
 end
