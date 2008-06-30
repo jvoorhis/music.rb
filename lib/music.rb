@@ -83,16 +83,23 @@ module Music
     ]
   end
   
+  # A MusicStructure is a computation that produces a Surface. Individual
+  # MusicStructure instances are compositional building blocks, responsible for
+  # both generating individual events and determining the future of the
+  # performance.
   class MusicStructure
-    # Sequencing
+    # Sequencing operator: the structure on the rhs will be activated when the
+    # current structure has finished.
     def >>(structure)
       @next = structure
     end
     
+    # Predicate for whether a future event has been sequenced.
     def has_next?
       !@next.nil?
     end
     
+    # Return the next MusicStructure in the sequence, if any.
     def next_structure; @next end
     
     # Return the next MusicEvent in its prepared state.
@@ -103,14 +110,18 @@ module Music
     # Prepare the structure before generating an event.
     def prepare; self end
     
+    # Generate a MusicEvent. This should only be called after preparing the
+    # structure. This is usually taken care of for you by MusicStructure#next.
     def generate(surface)
       raise NotImplementedError, "Subclass responsibility"
     end
     
+    # Generate a musical surface from the current structure.
     def surface
       Surface.new(self)
     end
     
+    # Iterate through the structures reachable from the current structure.
     def structure
       StructureIterator.new(self)
     end
@@ -257,6 +268,8 @@ module Music
     end
   end
   
+  # Repeats the given MusicStructure a specified number of times, before
+  # proceeding.
   class Repeat < MusicStructure
     def initialize(repititions, structure)
       @repititions, @structure = repititions, structure
@@ -269,6 +282,17 @@ module Music
         @repititions -= 1
         @structure.prepare
       end
+    end
+  end
+  
+  # Lifts a Proc into a MusicStructure.
+  class Fun < MusicStructure
+    def initialize(&proc)
+      @proc = proc
+    end
+    
+    def generate(surface)
+      @proc[surface]
     end
   end
   
@@ -297,6 +321,10 @@ module Music
     
     def repeat(rep, structure)
       Repeat.new(rep, structure)
+    end
+    
+    def fun(&proc)
+      Fun.new(&proc)
     end
   end
   
@@ -378,9 +406,11 @@ module Music
 end
 
 if __FILE__ == $0
+  include Music
+  
   def example
     (lbl=note(60)) >>
-      note(62) >>
+      fun { |s| Note.new(62, 1, 64) } >>
       cycle(note(64), note(71)) >>
       choice(lbl, 
         repeat(3, lbl) >>
