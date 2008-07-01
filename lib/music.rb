@@ -134,28 +134,29 @@ module Music
     end
   end
   
+  require 'forwardable'
+  
   class Surface
     include Enumerable
+    extend Forwardable
+    
+    def_delegators :@surface, :[], :[]=, :each, :first, :last
     
     def initialize(head)
-      @head    = head
-      @surface = []
+      @head, @surface = head, []
       generate
     end
     
-    def [](key) @surface[key] end
-    
-    def each(&block) @surface.each(&block) end
-    
-    def generate
-      @surface.clear
-      return if @head.nil?
-      cursor = @head
-      
-      begin
-        @surface << cursor.generate(self)
-      end while cursor = cursor.next
-    end
+    private
+      def generate
+        @surface.clear
+        return if @head.nil?
+        cursor = @head
+        
+        begin
+          @surface << cursor.generate(self)
+        end while cursor = cursor.next
+      end
   end
   
   class StructureIterator
@@ -203,6 +204,10 @@ module Music
     def pitch_class
       PitchClass.for(@pitch)
     end
+    
+    def transpose(hsteps, dur=self.duration, eff=self.effort)
+      self.class.new(pitch+hsteps, dur, eff)
+    end
   end
   
   class Chord < MusicEvent
@@ -225,6 +230,10 @@ module Music
     def pitch_class
       @pitches.map { |pitch| PitchClass.for(pitch) }
     end
+    
+    def transpose(hsteps, dur=self.duration, eff=self.effort)
+      self.class.new(pitch.map { |p| p+hsteps }, dur, eff)
+    end
   end
   
   class Constant < MusicStructure
@@ -233,6 +242,16 @@ module Music
     end
     
     def generate(surface) @event.dup end
+  end
+  
+  class Interval < MusicStructure
+    def initialize(*args) # pitch, duration, effort
+      @args = args
+    end
+    
+    def generate(surface)
+      surface.last.transpose(*@args)
+    end
   end
   
   # Choose randomly from given structures, then proceed.
@@ -312,6 +331,10 @@ module Music
     
     def chord(pitches, duration=1, effort=64)
       Constant.new(Chord.new(pitches, duration, effort))
+    end
+    
+    def interval(*args)
+      Interval.new(*args)
     end
     
     def choice(*structures)
@@ -414,8 +437,8 @@ if __FILE__ == $0
   def example
     (lbl=note(60)) >>
       fun { |s| Note.new(62, 1, 64) } >>
-      cycle(note(64), note(71)) >>
-      choice(lbl, 
+      cycle(interval(2), interval(9)) >>
+      choice(lbl,
         repeat(3, lbl) >>
         chord([60, 67, 72], 2, [127, 72, 96]))
     lbl
