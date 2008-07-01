@@ -351,7 +351,7 @@ module Music
   require 'smf'
   
   # Standard Midi File performance.
-  class SMFPerformance
+  class SMFTranscription
     include SMF
     
     def initialize(options={})
@@ -426,5 +426,5 @@ if __FILE__ == $0
     Music::Chord === note ? "<#{note.pitch_class * ', '}>" : note.pitch_class
   } * ', '
   
-  Music::SMFPerformance.new.perform(s, :name => "Example").save('example')
+  Music::SMFTranscription.new.perform(sur, :name => "Example").save('example')
 end
