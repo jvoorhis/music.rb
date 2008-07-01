@@ -28,7 +28,7 @@ module Music
   
   # Convert midi note numbers to hertz
   def self.mtof(pitch)
-    440.0 * (2 ** (((pitch)-69)/12))
+    440.0 * (2 ** ((pitch-69)/12))
   end
   
   # Convert hertz to midi note numbers
@@ -253,19 +253,22 @@ module Music
   
   class Cycle < MusicStructure
     def initialize(*structures)
-      @structures = structures
-      @pos = @structures.size
+      @structures, @pos = structures, structures.size-1
     end
     
     def prepare
-      structure = @structures[ @pos %= @structures.size ]
-      @pos += 1
+      structure = @structures[next_index]
       unless structure.has_next?
         structure = structure.dup
         structure >> @next
       end
       structure.prepare
     end
+    
+    private
+      def next_index
+        @pos = (@pos + 1) % @structures.size
+      end
   end
   
   # Repeats the given MusicStructure a specified number of times, before
