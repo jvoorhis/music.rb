@@ -421,10 +421,10 @@ if __FILE__ == $0
     lbl
   end
   
-  s = example.surface
-  puts s.map { |note| Music::Chord === note ?
-                          "<#{note.pitch_class * ', '}>" :
-                          note.pitch_class                     } * ', '
+  sur = example.surface
+  puts sur.map { |note| 
+    Music::Chord === note ? "<#{note.pitch_class * ', '}>" : note.pitch_class
+  } * ', '
   
   Music::SMFPerformance.new.perform(s, :name => "Example").save('example')
 end
