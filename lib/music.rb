@@ -102,13 +102,13 @@ module Music
     # Return the next MusicStructure in the sequence, if any.
     def next_structure; @next end
     
-    # Return the next MusicEvent in its prepared state.
+    # Return the next MusicEvent in its activated state.
     def next
-      @next.prepare if @next
+      @next.activate if @next
     end
     
-    # Prepare the structure before generating an event.
-    def prepare; self end
+    # Activate the structure before generating an event.
+    def activate; self end
     
     # Generate a MusicEvent. This should only be called after preparing the
     # structure. This is usually taken care of for you by MusicStructure#next.
@@ -149,10 +149,8 @@ module Music
     
     private
       def generate
-        @surface.clear
         return if @head.nil?
-        cursor = @head
-        
+        cursor = @head.activate
         begin
           @surface << cursor.generate(self)
         end while cursor = cursor.next
@@ -165,6 +163,10 @@ module Music
     def initialize(head)
       @head = head
     end
+    
+    def first; @head end
+    
+    def last; map { |s| s }[-1] end
     
     def each
       return if @head.nil?
@@ -260,13 +262,13 @@ module Music
       @choices = choices
     end
     
-    def prepare
+    def activate
       choice = @choices.rand
       unless choice.has_next?
         choice = choice.dup
         choice >> @next
       end
-      choice.prepare
+      choice.activate
     end
   end
   
@@ -275,13 +277,13 @@ module Music
       @structures, @pos = structures, structures.size-1
     end
     
-    def prepare
+    def activate
       structure = @structures[next_index]
       unless structure.has_next?
         structure = structure.dup
         structure >> @next
       end
-      structure.prepare
+      structure.activate
     end
     
     private
@@ -297,12 +299,12 @@ module Music
       @repititions, @structure = repititions, structure
     end
     
-    def prepare
+    def activate
       if @repititions.zero?
-        @next.prepare if @next
+        @next.activate if @next
       else
         @repititions -= 1
-        @structure.prepare
+        @structure.activate
       end
     end
   end
@@ -352,6 +354,12 @@ module Music
     def fun(&proc)
       Fun.new(&proc)
     end
+    
+    def seq(*structures)
+      hd, *tl = structures
+      tl.inject(hd) { |s, k| s.structure.last >> k }
+      hd
+    end    
   end
   
   class MidiTime
