@@ -16,7 +16,7 @@
 
 class Array
   def rand
-    self[(Kernel::rand * size).floor]
+    self[(Music::rand * size).floor]
   end
 end
 
@@ -53,6 +53,17 @@ module Music
       else raise ArgumentError, "Cannot cast #{pitch.class} to hertz."
     end
   end
+  
+  # Pluggable random number generator support. The default RNG may be
+  # replaced, e.g. for deterministic unit testing.
+  class RNG
+    def rand; Kernel.rand end
+  end
+  def Music.rng; @rng end
+  def Music.rng=(rng) @rng = rng end
+  Music.rng = RNG.new
+  
+  def Music.rand; Music.rng.rand end
   
   class PitchClass
     include Comparable
@@ -125,6 +136,23 @@ module Music
     def structure
       StructureIterator.new(self)
     end
+        
+    def include?(structure)
+      self == structure || has_next? && next_structure.include?(structure)
+    end
+    
+    def splice(structure)
+      if has_next?
+        next_structure.splice(structure)
+      else
+        self >> structure
+      end
+    end
+    
+    # Convenient access to the RNG
+    def rand
+      Music::rng.rand
+    end
   end
   
   class MusicEvent
@@ -140,12 +168,14 @@ module Music
     include Enumerable
     extend Forwardable
     
-    def_delegators :@surface, :[], :[]=, :each, :first, :last
+    def_delegators :@surface, :[], :[]=, :each, :first, :last, :size, :length
     
     def initialize(head)
       @head, @surface = head, []
       generate
     end
+    
+    def to_a; @surface end
     
     private
       def generate
@@ -168,6 +198,10 @@ module Music
     
     def last; map { |s| s }[-1] end
     
+    def include?(structure)
+      detect { |s| s == structure } ? true : false
+    end
+    
     def each
       return if @head.nil?
       cursor = @head
@@ -186,6 +220,13 @@ module Music
       @duration = duration
     end
     
+    def ==(other)
+      case other
+        when Silence: @duration == other.duration
+        else false
+      end
+    end
+    
     def perform(performance)
       performance.play_silence(self)
     end
@@ -197,6 +238,14 @@ module Music
     
     def initialize(pitch, duration, effort)
       @pitch, @duration, @effort = pitch, duration, effort
+    end
+    
+    def ==(other)
+      case other
+        when Note
+          [@pitch, @duration, @effort] == [other.pitch, other.duration, other.effort]
+        else false
+      end
     end
     
     def perform(performance)
@@ -219,6 +268,14 @@ module Music
       @pitches, @duration, @effort = pitches, duration, effort
     end
     
+    def ==(other)
+      case other
+        when Chord
+          [@pitches, @duration, @effort] == [other.pitches, other.duration, other.effort]
+        else false
+      end
+    end
+    
     # Iterate over each pitch in the chord, with its corresponding effort value.
     def pitch_with_effort
       e = Array(effort)
@@ -234,7 +291,7 @@ module Music
     end
     
     def transpose(hsteps, dur=self.duration, eff=self.effort)
-      self.class.new(pitch.map { |p| p+hsteps }, dur, eff)
+      self.class.new(pitches.map { |p| p+hsteps }, dur, eff)
     end
   end
   
@@ -252,7 +309,12 @@ module Music
     end
     
     def generate(surface)
-      surface.last.transpose(*@args)
+      # Scan backwards for a transposable event.
+      if ev = surface.to_a.reverse.detect { |e| e.respond_to?(:transpose) }
+        ev.transpose(*@args)
+      else
+        Silence.new(0)
+      end
     end
   end
   
@@ -270,6 +332,14 @@ module Music
       end
       choice.activate
     end
+    
+    def include?(structure)
+      self == structure || @choices.any? { |c| c.include?(structure) } || (has_next? && next_structure.include?(structure))
+    end
+    
+    def splice(structure)
+      @choices.each { |c| c.splice(structure) unless c.include?(structure) }
+    end
   end
   
   class Cycle < MusicStructure
@@ -279,11 +349,18 @@ module Music
     
     def activate
       structure = @structures[next_index]
-      unless structure.has_next?
-        structure = structure.dup
-        structure >> @next
+      if has_next?
+        structure.structure.last >> @next unless structure.structure.include?(@next)
       end
       structure.activate
+    end
+    
+    def include?(structure)
+      self == structure || @structures.any? { |c| c.include?(structure) } || (has_next? && next_structure.include?(structure))
+    end
+    
+    def splice(structure)
+      @structures.each { |c| c.splice(structure) unless c.include?(structure) }
     end
     
     private
@@ -301,11 +378,20 @@ module Music
     
     def activate
       if @repititions.zero?
-        @next.activate if @next
+        @next.activate if has_next?
       else
         @repititions -= 1
+        @structure.splice(self) unless @structure.include?(self)
         @structure.activate
       end
+    end
+    
+    def include?(structure)
+      self == structure || @structure.include?(structure) || (has_next? && next_structure.include?(structure))
+    end
+    
+    def splice(structure)
+      @structure.splice(structure) unless @structure.include?(structure)
     end
   end
   
@@ -354,6 +440,8 @@ module Music
     def fun(&proc)
       Fun.new(&proc)
     end
+    
+    def dupe; Dup.new end
     
     def seq(*structures)
       hd, *tl = structures
