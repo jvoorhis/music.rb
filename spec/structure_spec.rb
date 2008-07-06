@@ -122,22 +122,19 @@ end
 
 describe Choice do
   before(:each) do
-    @__original_rng = Music.rng
-    @rng = Music.rng = StubRNG.new
-    
     @structure = Choice.new(
       Constant.new(Note.new(60, 1, 127)),
       Constant.new(Note.new(64, 1, 127))
     )
   end
-  after(:all) { Music.rng = @__original_rng }
   
   it_should_behave_like "all structures"
   
   it "should randomly choose the next structure from its choices" do
-    @structure.should generate(Note.new(60, 1, 127))
-    @rng.val = 0.5
-    @structure.should generate(Note.new(64, 1, 127))
+    given_random_number(0.0) {
+      @structure.should generate(Note.new(60, 1, 127)) }
+    given_random_number(0.5) {
+      @structure.should generate(Note.new(64, 1, 127)) }
   end
   
   it "should splice its next event after selecting a lone event from its choices" do
