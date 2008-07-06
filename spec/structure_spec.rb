@@ -63,7 +63,7 @@ describe Interval do
   
   it "should generate Silence with no duration if a suitable Chord or Note cannot be found" do
     hd = Interval.new(2)
-    hd.surface.to_a.should == [Silence.new(0)]
+    hd.surface.should be_blank
   end
 end
 
@@ -106,13 +106,15 @@ describe Repeat do
         Constant.new(Note.new(62, 1, 127)) >> 
         Constant.new(Note.new(64, 1, 127))
       @structure = Repeat.new(2, @phrase)
+      @structure >> Constant.new(Silence.new(1))
     end
     
     it "should be activated after the completion of its target phrase" do
       @structure.should generate(
         Note.new(60, 1, 127), Note.new(62, 1, 127),
         Note.new(64, 1, 127), Note.new(60, 1, 127),
-        Note.new(62, 1, 127), Note.new(64, 1, 127)
+        Note.new(62, 1, 127), Note.new(64, 1, 127),
+        Silence.new(1)
       )
     end
   end
@@ -146,15 +148,21 @@ end
 
 describe Cycle do
   before(:each) do
-    @structure = Cycle.new(
-      Constant.new(Note.new(60, 1, 127)),
-      Constant.new(Silence.new(1))
-    )
+    (@structure = Cycle.new(
+        Constant.new(Note.new(60, 1, 127)),
+        Constant.new(Note.new(62, 1, 127)))) >>
+      Constant.new(Silence.new(1)) >>
+      Repeat.new(1, @structure)
   end
   
   it_should_behave_like "all structures"
   
-  it "should cycle through its choices"
+  it "should cycle through its choices" do
+    @structure.should generate(
+      Note.new(60, 1, 127), Silence.new(1),
+      Note.new(62, 1, 127), Silence.new(1)
+    )
+  end
 end
 
 describe Fun do

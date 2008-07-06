@@ -14,10 +14,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+class Object
+  def blank?; false end
+end
+
 class Array
   def rand
-    self[(Music::rand * size).floor]
+    self[(Music.rand * size).floor]
   end
+  
+  def blank?; size.zero? end
+end
+
+class Hash
+  def blank?; size.zero? end
+end
+
+class NilClass
+  def blank?; true end
+end
+
+class False
+  def blank?; true end
 end
 
 module Music
@@ -160,29 +178,26 @@ module Music
     def perform(performance)
       raise NotImplementedError, "Subclass responsibility"
     end
+    
+    def blank?; @duration.zero? end
   end
   
-  require 'forwardable'
-  
-  class Surface
-    include Enumerable
-    extend Forwardable
-    
-    def_delegators :@surface, :[], :[]=, :each, :first, :last, :size, :length
-    
+  class Surface < Array
     def initialize(head)
-      @head, @surface = head, []
+      @head = head
       generate
     end
     
-    def to_a; @surface end
+    def <<(ev)
+      super unless ev.blank?
+    end
     
     private
       def generate
         return if @head.nil?
         cursor = @head.activate
         begin
-          @surface << cursor.generate(self)
+          self << cursor.generate(self)
         end while cursor = cursor.next
       end
   end
@@ -350,7 +365,7 @@ module Music
     def activate
       structure = @structures[next_index]
       if has_next?
-        structure.structure.last >> @next unless structure.structure.include?(@next)
+        structure.splice(@next) unless structure.include?(@next)
       end
       structure.activate
     end
