@@ -560,5 +560,8 @@ if __FILE__ == $0
     Music::Chord === note ? "<#{note.pitch_class * ', '}>" : note.pitch_class
   } * ', '
   
-  Music::SMFTranscription.new.perform(sur, :name => "Example").save('example')
+  Music::SMFTranscription.new.
+      perform(sur, :name => "Track 1").
+      perform(sur, :name => "Track 2").
+      save('example')
 end
