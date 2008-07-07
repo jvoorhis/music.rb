@@ -14,30 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class Object
-  def blank?; false end
-end
-
-class Array
-  def rand
-    self[(Music.rand * size).floor]
-  end
-  
-  def blank?; size.zero? end
-end
-
-class Hash
-  def blank?; size.zero? end
-end
-
-class NilClass
-  def blank?; true end
-end
-
-class False
-  def blank?; true end
-end
-
 module Music
   
   def self.log2(x)
@@ -109,126 +85,111 @@ module Music
       new(:g, 7), new(:gis, 8),
       new(:a, 9), new(:ais, 10),
       new(:b, 11)
-    ]
+    ] unless defined?(PITCH_CLASSES)
   end
   
-  # A MusicStructure is a computation that produces a Surface. Individual
-  # MusicStructure instances are compositional building blocks, responsible for
-  # both generating individual events and determining the future of the
-  # performance.
-  class MusicStructure
-    # Sequencing operator: the structure on the rhs will be activated when the
-    # current structure has finished.
-    def >>(structure)
-      @next = structure
-    end
-    
-    # Predicate for whether a future event has been sequenced.
-    def has_next?
-      !@next.nil?
-    end
-    
-    # Return the next MusicStructure in the sequence, if any.
-    def next_structure; @next end
-    
-    # Return the next MusicEvent in its activated state.
-    def next
-      @next.activate if @next
-    end
-    
-    # Activate the structure before generating an event.
-    def activate; self end
-    
-    # Generate a MusicEvent. This should only be called after preparing the
-    # structure. This is usually taken care of for you by MusicStructure#next.
-    def generate(surface)
-      raise NotImplementedError, "Subclass responsibility"
-    end
-    
-    # Generate a musical surface from the current structure.
-    def surface
-      Surface.new(self)
-    end
-    
-    # Iterate through the structures reachable from the current structure.
-    def structure
-      StructureIterator.new(self)
-    end
-        
-    def include?(structure)
-      self == structure || has_next? && next_structure.include?(structure)
-    end
-    
-    def splice(structure)
-      if has_next?
-        next_structure.splice(structure)
-      else
-        self >> structure
-      end
-    end
-    
-    # Convenient access to the RNG
-    def rand
-      Music::rng.rand
-    end
-  end
-  
-  class MusicEvent
-    # Call +MusicEvent#perform+ with a performance visitor.
-    def perform(performance)
-      raise NotImplementedError, "Subclass responsibility"
-    end
-    
-    def blank?; @duration.zero? end
-  end
-  
-  class Surface < Array
-    def initialize(head)
-      @head = head
-      generate
-    end
-    
-    def <<(ev)
-      super unless ev.blank?
-    end
-    
-    private
-      def generate
-        return if @head.nil?
-        cursor = @head.activate
-        begin
-          self << cursor.generate(self)
-        end while cursor = cursor.next
-      end
-  end
-  
-  class StructureIterator
+  class MusicObject
     include Enumerable
     
-    def initialize(head)
-      @head = head
+    def duration; 0.0 end
+    
+    # Sequential composition.
+    def seq(other)
+      Seq.new(self, other)
     end
     
-    def first; @head end
-    
-    def last; map { |s| s }[-1] end
-    
-    def include?(structure)
-      detect { |s| s == structure } ? true : false
+    # Parallel (concurrent) composition.
+    def par(other)
+      Par.new(self, other)
     end
     
     def each
-      return if @head.nil?
-      cursor = @head
-      
-      begin
-        yield cursor
-      end while cursor = cursor.next_structure
+      yield self
+    end
+    
+    def each_with_offset(offset=0)
+      yield self, offset
+    end
+    
+    def perform(performer, context)
+      raise NotImplementedError, "Subclass responsibility"
+    end
+  end
+  
+  class Seq < MusicObject
+    attr_reader :left, :right
+    
+    def initialize(left, right)
+      @left, @right = left, right
+    end
+    
+    def ==(other)
+      case other
+        when Seq
+          left == other.left && right == other.right
+        else false
+      end
+    end
+    
+    def duration
+      left.duration + right.duration
+    end
+    
+    def each(&block)
+      left.each(&block)
+      block.call(self)
+      right.each(&block)
+    end
+    
+    def each_with_offset(offset=0, &block)
+      left.each_with_offset(offset, &block)
+      block.call(self, offset)
+      right.each_with_offset(offset + left.duration, &block)
+    end
+    
+    def perform(performer, context)
+      performer.perform_seq(self, context)
+    end
+  end
+  
+  class Par < MusicObject
+    attr_reader :top, :bottom
+    
+    def initialize(top, bottom)
+      @top, @bottom = top, bottom
+    end
+    
+    def ==(other)
+      case other
+        when Par
+          top == other.top && bottom == other.bottom
+        else false
+      end
+    end
+    
+    def duration
+      [top.duration, bottom.duration].max
+    end
+    
+    def each(&block)
+      top.each(&block)
+      block.call(self)
+      bottom.each(&block)
+    end
+    
+    def each_with_offset(offset=0, &block)
+      top.each_with_offset(offset, &block)
+      block.call(self, offset)
+      bottom.each_with_offset(offset, &block)
+    end
+    
+    def perform(performer, context)
+      performer.perform_par(self, context)
     end
   end
   
   # Remain silent for the duration.
-  class Silence < MusicEvent
+  class Silence < MusicObject
     attr :duration
     
     def initialize(duration)
@@ -242,13 +203,14 @@ module Music
       end
     end
     
-    def perform(performance)
-      performance.play_silence(self)
+    def perform(performer, context)
+      performer.perform_silence(self, context)
     end
   end
+  Rest = Silence unless defined?(Rest) # Type alias for convenience
   
   # A note has a steady pitch and a duration.
-  class Note < MusicEvent
+  class Note < MusicObject
     attr_reader :pitch, :duration, :effort
     
     def initialize(pitch, duration, effort)
@@ -263,10 +225,6 @@ module Music
       end
     end
     
-    def perform(performance)
-      performance.play_note(self)
-    end
-    
     def pitch_class
       PitchClass.for(@pitch)
     end
@@ -274,195 +232,10 @@ module Music
     def transpose(hsteps, dur=self.duration, eff=self.effort)
       self.class.new(pitch+hsteps, dur, eff)
     end
-  end
-  
-  class Chord < MusicEvent
-    attr_reader :pitches, :duration, :effort
     
-    def initialize(pitches, duration, effort)
-      @pitches, @duration, @effort = pitches, duration, effort
+    def perform(performer, context)
+      performer.perform_note(self, context)
     end
-    
-    def ==(other)
-      case other
-        when Chord
-          [@pitches, @duration, @effort] == [other.pitches, other.duration, other.effort]
-        else false
-      end
-    end
-    
-    # Iterate over each pitch in the chord, with its corresponding effort value.
-    def pitch_with_effort
-      e = Array(effort)
-      @pitches.each_with_index { |p, i| yield([p, e[i % e.size]]) }
-    end
-    
-    def perform(performance)
-      performance.play_chord(self)
-    end
-    
-    def pitch_class
-      @pitches.map { |pitch| PitchClass.for(pitch) }
-    end
-    
-    def transpose(hsteps, dur=self.duration, eff=self.effort)
-      self.class.new(pitches.map { |p| p+hsteps }, dur, eff)
-    end
-  end
-  
-  class Constant < MusicStructure
-    def initialize(event)
-      @event = event
-    end
-    
-    def generate(surface) @event.dup end
-  end
-  
-  class Interval < MusicStructure
-    def initialize(*args) # pitch, duration, effort
-      @args = args
-    end
-    
-    def generate(surface)
-      # Scan backwards for a transposable event.
-      if ev = surface.to_a.reverse.detect { |e| e.respond_to?(:transpose) }
-        ev.transpose(*@args)
-      else
-        Silence.new(0)
-      end
-    end
-  end
-  
-  # Choose randomly from given structures, then proceed.
-  class Choice < MusicStructure
-    def initialize(*choices)
-      @choices = choices
-    end
-    
-    def activate
-      choice = @choices.rand
-      unless choice.has_next?
-        choice = choice.dup
-        choice >> @next
-      end
-      choice.activate
-    end
-    
-    def include?(structure)
-      self == structure || @choices.any? { |c| c.include?(structure) } || (has_next? && next_structure.include?(structure))
-    end
-    
-    def splice(structure)
-      @choices.each { |c| c.splice(structure) unless c.include?(structure) }
-    end
-  end
-  
-  class Cycle < MusicStructure
-    def initialize(*structures)
-      @structures, @pos = structures, structures.size-1
-    end
-    
-    def activate
-      structure = @structures[next_index]
-      if has_next?
-        structure.splice(@next) unless structure.include?(@next)
-      end
-      structure.activate
-    end
-    
-    def include?(structure)
-      self == structure || @structures.any? { |c| c.include?(structure) } || (has_next? && next_structure.include?(structure))
-    end
-    
-    def splice(structure)
-      @structures.each { |c| c.splice(structure) unless c.include?(structure) }
-    end
-    
-    private
-      def next_index
-        @pos = (@pos + 1) % @structures.size
-      end
-  end
-  
-  # Repeats the given MusicStructure a specified number of times, before
-  # proceeding.
-  class Repeat < MusicStructure
-    def initialize(repititions, structure)
-      @repititions, @structure = repititions, structure
-    end
-    
-    def activate
-      if @repititions.zero?
-        @next.activate if has_next?
-      else
-        @repititions -= 1
-        @structure.splice(self) unless @structure.include?(self)
-        @structure.activate
-      end
-    end
-    
-    def include?(structure)
-      self == structure || @structure.include?(structure) || (has_next? && next_structure.include?(structure))
-    end
-    
-    def splice(structure)
-      @structure.splice(structure) unless @structure.include?(structure)
-    end
-  end
-  
-  # Lifts a Proc into a MusicStructure.
-  class Fun < MusicStructure
-    def initialize(&proc)
-      @proc = proc
-    end
-    
-    def generate(surface)
-      @proc[surface]
-    end
-  end
-  
-  ::Kernel.module_eval do
-    
-    def silence(duration=1)
-      Constant.new(Silence.new(duration))
-    end
-    alias :rest :silence
-    
-    def note(pitch, duration=1, effort=64)
-      Constant.new(Note.new(pitch, duration, effort))
-    end
-    
-    def chord(pitches, duration=1, effort=64)
-      Constant.new(Chord.new(pitches, duration, effort))
-    end
-    
-    def interval(*args)
-      Interval.new(*args)
-    end
-    
-    def choice(*structures)
-      Choice.new(*structures)
-    end
-    
-    def cycle(*structures)
-      Cycle.new(*structures)
-    end
-    
-    def repeat(rep, structure)
-      Repeat.new(rep, structure)
-    end
-    
-    def fun(&proc)
-      Fun.new(&proc)
-    end
-    
-    def dupe; Dup.new end
-    
-    def seq(*structures)
-      hd, *tl = structures
-      tl.inject(hd) { |s, k| s.structure.last >> k }
-      hd
-    end    
   end
   
   class MidiTime
@@ -472,7 +245,7 @@ module Music
       @resolution = res
     end
     
-    def divisions(val)
+    def ppqn(val)
       case val
         when Numeric
           (val * resolution).round.to_i
@@ -489,17 +262,20 @@ module Music
     include SMF
     
     def initialize(options={})
-      @time = MidiTime.new(options.fetch(:resolution, 96))
+      @time = MidiTime.new(options.fetch(:resolution, 480))
       @seq  = Sequence.new(1, @time.resolution)
     end
     
-    def perform(surface, options={})
+    def write(score, options={})
       @track = Track.new
       seq_name = options.fetch(:name, gen_seq_name)
       @track << SequenceName.new(0, seq_name)
       @channel = options.fetch(:channel, 1)
-      @offset = 0
-      surface.each { |event| event.perform(self) }
+      
+      score.each_with_offset do |obj, offset|
+        obj.perform(self, offset)
+      end
+      
       @seq << @track
       self
     end
@@ -509,59 +285,24 @@ module Music
       @seq.save(filename)
     end
     
-    def play_silence(ev)
-      advance(ev)
+    def perform_silence(silence, context) end
+    
+    def perform_seq(seq, context) end
+    
+    def perform_par(par, context) end
+    
+    def perform_note(note, offset)
+      attack  = @time.ppqn(offset)
+      release = attack + @time.ppqn(offset)
+      @track << NoteOn.new(attack, @channel, Music.MidiPitch(note.pitch), note.effort)
+      @track << NoteOff.new(release, @channel, Music.MidiPitch(note.pitch), note.effort)
     end
     
-    def play_note(ev)
-      @track << NoteOn.new(@offset, @channel, Music.MidiPitch(ev.pitch), ev.effort)
-      advance(ev)
-      @track << NoteOff.new(@offset, @channel, Music.MidiPitch(ev.pitch), ev.effort)
-    end
-    
-    def play_chord(ev)
-      ev.pitch_with_effort do |pitch, effort|
-        @track << NoteOn.new(@offset, @channel, Music.MidiPitch(pitch), effort)
-      end
-      advance(ev)
-      ev.pitch_with_effort do |pitch, effort|
-        @track << NoteOff.new(@offset, @channel, Music.MidiPitch(pitch), effort)
-      end
-    end
-    
-    private
-      def advance(ev)
-        @offset += @time.divisions(ev.duration)
-      end
-      
+    protected
       def gen_seq_name
         @seqn ||= 0
         @seqn  += 1
         "Untitled #@seqn"
       end
   end
-end
-
-if __FILE__ == $0
-  include Music
-  
-  def example
-    (lbl=note(60)) >>
-      fun { |s| Note.new(62, 1, 64) } >>
-      cycle(interval(2), interval(9)) >>
-      choice(lbl,
-        repeat(3, lbl) >>
-        chord([60, 67, 72], 2, [127, 72, 96]))
-    lbl
-  end
-  
-  sur = example.surface
-  puts sur.map { |note| 
-    Music::Chord === note ? "<#{note.pitch_class * ', '}>" : note.pitch_class
-  } * ', '
-  
-  Music::SMFTranscription.new.
-      perform(sur, :name => "Track 1").
-      perform(sur, :name => "Track 2").
-      save('example')
 end
