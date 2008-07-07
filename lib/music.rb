@@ -97,11 +97,13 @@ module Music
     def seq(other)
       Seq.new(self, other)
     end
+    alias :& :seq
     
     # Parallel (concurrent) composition.
     def par(other)
       Par.new(self, other)
     end
+    alias :| :par
     
     def each
       yield self
