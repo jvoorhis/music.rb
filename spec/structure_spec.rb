@@ -139,7 +139,8 @@ describe Choice do
   
   it "should splice its next event after selecting a lone event from its choices" do
     @structure >> Constant.new(Silence.new(1))
-    @structure.should generate(Note.new(60, 1, 127), Silence.new(1))
+    given_random_number(0.0) {
+      @structure.should generate(Note.new(60, 1, 127), Silence.new(1)) }
   end
 end
 

@@ -81,37 +81,3 @@ describe MusicEvent do
     end
   end
 end
-
-class VisitorMatcher
-  class StubVisitor
-    def initialize(meth_sym)
-      @match = false
-      eval "def #{meth_sym}(*args) @match = true end"
-    end
-    
-    def method_missing(meth_sym, *args)
-      @match = false
-      @__meth_sym = meth_sym
-    end
-    
-    def __meth_sym; @__meth_sym.nil? ? "nothing" : @__meth_sym end
-    
-    def __matches?; @match == true end
-  end
-  
-  def initialize(meth_sym)
-    @visitor = StubVisitor.new(meth_sym)
-    @meth_sym = meth_sym
-  end
-  
-  def matches?(ev)
-    ev.perform(@visitor)
-    @visitor.__matches?
-  end
-  
-  def failure_message
-    "Expected visit with #@meth_sym. Got #{@visitor.__meth_sym}."
-  end
-end
-
-def be_performed_with(meth_sym) VisitorMatcher.new(meth_sym) end
