@@ -14,38 +14,66 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'rational'
+
 module Music
   
-  def self.log2(x)
+  module_function
+  def log2(x)
     Math.log(x) / Math.log(2)
-  end 
+  end
   
   # Convert midi note numbers to hertz
-  def self.mtof(pitch)
-    440.0 * (2 ** ((pitch-69)/12))
+  def mtof(pitch)
+    440.0 * (2.0 ** ((pitch.to_f-69)/12))
   end
   
   # Convert hertz to midi note numbers
-  def self.ftom(pitch)
+  def ftom(pitch)
     (69 + 12 * (log2(pitch / 440.0))).round
   end
   
   # Cast pitch value as a midi pitch number.
-  def self.MidiPitch(pitch)
+  def MidiPitch(pitch)
     case pitch
-      when Integer then pitch 
+      when Integer then pitch
       when Float then ftom(pitch)
       else raise ArgumentError, "Cannot cast #{pitch.class} to midi."
     end
   end
   
   # Cast pitch value as hertz.
-  def self.Hertz(pitch)
+  def Hertz(pitch)
     case pitch
       when Integer then mtof(pitch)
       when Float then pitch
       else raise ArgumentError, "Cannot cast #{pitch.class} to hertz."
     end
+  end
+  
+  # Construct a Note.
+  def note(pit, dur=1, vel=100)
+    Note.new(pit, dur, vel)
+  end
+  
+  # Construct a Silence.
+  def silence(dur=1)
+    Silence.new(dur)
+  end
+  alias :rest :silence
+  
+  # Compose a list of MusicObjects sequentially.
+  def line(*objs)
+    objs.inject { |a, b| a & b }
+  end
+  
+  # Compose a list of MusicObjects in parallel.
+  def chord(*objs)
+    objs.inject { |a, b| a | b }
+  end
+  
+  def delay(dur, obj)
+    silence(dur) & obj
   end
   
   # Pluggable random number generator support. The default RNG may be
@@ -58,6 +86,13 @@ module Music
   Music.rng = RNG.new
   
   def Music.rand; Music.rng.rand end
+  
+  class Pitch
+    attr_reader :pitch_class, :octave
+    def initialize(pc, oct)
+      @pitch_class, @octave = pc, oct
+    end
+  end
   
   class PitchClass
     include Comparable
@@ -89,9 +124,8 @@ module Music
   end
   
   class MusicObject
-    include Enumerable
     
-    def duration; 0.0 end
+    def duration; 0 end
     
     # Sequential composition.
     def seq(other)
@@ -105,17 +139,11 @@ module Music
     end
     alias :| :par
     
-    def each
-      yield self
-    end
-    
-    def each_with_offset(offset=0)
-      yield self, offset
-    end
-    
     def perform(performer, context)
       raise NotImplementedError, "Subclass responsibility"
     end
+    
+    def to_a; [self] end
   end
   
   class Seq < MusicObject
@@ -137,20 +165,12 @@ module Music
       left.duration + right.duration
     end
     
-    def each(&block)
-      left.each(&block)
-      block.call(self)
-      right.each(&block)
-    end
-    
-    def each_with_offset(offset=0, &block)
-      left.each_with_offset(offset, &block)
-      block.call(self, offset)
-      right.each_with_offset(offset + left.duration, &block)
-    end
-    
     def perform(performer, context)
-      performer.perform_seq(self, context)
+      left.perform(performer, context) + right.perform(performer, context.advance(left.duration))
+    end
+    
+    def to_a
+      left.to_a + right.to_a
     end
   end
   
@@ -173,20 +193,8 @@ module Music
       [top.duration, bottom.duration].max
     end
     
-    def each(&block)
-      top.each(&block)
-      block.call(self)
-      bottom.each(&block)
-    end
-    
-    def each_with_offset(offset=0, &block)
-      top.each_with_offset(offset, &block)
-      block.call(self, offset)
-      bottom.each_with_offset(offset, &block)
-    end
-    
     def perform(performer, context)
-      performer.perform_par(self, context)
+      top.perform(performer, context).merge( bottom.perform(performer, context) )
     end
   end
   
@@ -240,6 +248,49 @@ module Music
     end
   end
   
+  class Event
+    include Comparable
+    
+    attr_reader :time, :object
+    
+    def initialize(time, obj)
+      @time, @object = time, obj
+    end
+    
+    def <=>(ev)
+      @time <=> ev.time
+    end
+  end
+  
+  class Context
+    attr_reader :time
+    
+    def initialize(time)
+      @time = time
+    end
+    
+    def advance(dur)
+      Context.new( @time + dur )
+    end
+  end
+  
+  class Performance < Array
+    def merge(other) (self + other).sort end
+  end
+  
+  class Performer
+    def perform(score)
+      ctx = Context.new(0)
+      score.perform(self, ctx)
+    end
+    
+    def perform_note(note, context)
+      Performance[ Event.new(context.time, note) ]
+    end
+    
+    def perform_silence(silence, context) Performance[] end
+  end
+  
   class MidiTime
     attr :resolution
     
@@ -250,7 +301,7 @@ module Music
     def ppqn(val)
       case val
         when Numeric
-          (val * resolution).round.to_i
+          (val * resolution).round
         else
           raise ArgumentError, "Cannot convert #{val}:#{val.class} to midi time."
       end
@@ -268,14 +319,17 @@ module Music
       @seq  = Sequence.new(1, @time.resolution)
     end
     
-    def write(score, options={})
+    def write(performance, options={})
       @track = Track.new
       seq_name = options.fetch(:name, gen_seq_name)
       @track << SequenceName.new(0, seq_name)
       @channel = options.fetch(:channel, 1)
       
-      score.each_with_offset do |obj, offset|
-        obj.perform(self, offset)
+      performance.each do |event|
+        attack  = @time.ppqn(event.time)
+        release = attack + @time.ppqn(event.object.duration)
+        @track << NoteOn.new(attack, @channel, Music.MidiPitch(event.object.pitch), event.object.effort)
+        @track << NoteOff.new(release, @channel, Music.MidiPitch(event.object.pitch), event.object.effort)
       end
       
       @seq << @track
@@ -285,19 +339,6 @@ module Music
     def save(basename)
       filename = basename + '.mid'
       @seq.save(filename)
-    end
-    
-    def perform_silence(silence, context) end
-    
-    def perform_seq(seq, context) end
-    
-    def perform_par(par, context) end
-    
-    def perform_note(note, offset)
-      attack  = @time.ppqn(offset)
-      release = attack + @time.ppqn(offset)
-      @track << NoteOn.new(attack, @channel, Music.MidiPitch(note.pitch), note.effort)
-      @track << NoteOff.new(release, @channel, Music.MidiPitch(note.pitch), note.effort)
     end
     
     protected
