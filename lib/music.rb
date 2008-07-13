@@ -242,10 +242,6 @@ module Music
       end
     end
     
-    def pitch_class
-      PitchClass.for(@pitch)
-    end
-    
     def transpose(hsteps, dur=self.duration, eff=self.effort)
       self.class.new(pitch+hsteps, dur, eff)
     end
