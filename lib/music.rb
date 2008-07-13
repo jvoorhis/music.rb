@@ -70,10 +70,6 @@ module Music
     objs.inject { |a, b| a | b }
   end
   
-  def delay(dur, obj)
-    silence(dur) & obj
-  end
-  
   class Pitch
     attr_reader :pitch_class, :octave
     def initialize(pc, oct)
@@ -111,7 +107,6 @@ module Music
   end
   
   class MusicObject
-    
     def duration; 0 end
     
     # Sequential composition.
@@ -125,6 +120,16 @@ module Music
       Par.new(self, other)
     end
     alias :| :par
+    
+    def repeat(n)
+      raise TypeError, "Expected Integer, got #{n.class}." unless Integer === n
+      (1..(n-1)).inject(self) { |mus,rep| mus & self }
+    end
+    alias :* :repeat
+    
+    def delay(dur)
+      Silence.new(dur) & self
+    end
     
     def perform(performer, context)
       raise NotImplementedError, "Subclass responsibility"

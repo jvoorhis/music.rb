@@ -12,6 +12,30 @@ shared_examples_for "All MusicObjects" do
     ( @object | Silence.new(0) ).should  == par
     @object.par( Silence.new(0) ).should == par
   end
+  
+  describe "repetition" do
+    it "sequences an object with itself" do
+      (@object * 2).should == (@object & @object) # sequential composition
+      (@object * 3).should == (@object & @object & @object) # left-to-right
+    end
+    
+    it "preserves left-to-right ordering" do
+      (@object * 3).should == (@object & @object & @object)
+    end
+    
+    it "is equal to itself under the identity" do
+      (@object * 1).should == @object # Identity
+    end
+    
+    it "requires an Integer" do
+      proc { (@object * @object) }.should raise_error(TypeError)
+      proc { (@object * 1.0) }.should raise_error(TypeError)
+    end
+  end
+    
+  it "can be delayed with silence" do
+    @object.delay(4).should == Seq.new(Silence.new(4), @object)
+  end
 end
 
 describe Silence do

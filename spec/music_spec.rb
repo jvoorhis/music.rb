@@ -57,10 +57,6 @@ describe Music do
     it "should compose lists of music objects in parallel" do
       chord(note(60), note(64), note(67)).should == note(60) | note(64) | note(67)
     end
-    
-    it "should delay music objects with silence" do
-      delay(3, note(60)).should == silence(3) & note(60)
-    end
   end
   
   describe Pitch do
