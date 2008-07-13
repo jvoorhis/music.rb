@@ -74,17 +74,6 @@ module Music
     silence(dur) & obj
   end
   
-  # Pluggable random number generator support. The default RNG may be
-  # replaced, e.g. for deterministic unit testing.
-  class RNG
-    def rand; Kernel.rand end
-  end
-  def Music.rng; @rng end
-  def Music.rng=(rng) @rng = rng end
-  Music.rng = RNG.new
-  
-  def Music.rand; Music.rng.rand end
-  
   class Pitch
     attr_reader :pitch_class, :octave
     def initialize(pc, oct)
