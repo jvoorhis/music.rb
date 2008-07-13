@@ -21,10 +21,6 @@ require 'rational'
 module Music
   
   module_function
-  def log2(x)
-    Math.log(x) / Math.log(2)
-  end
-  
   # Convert midi note numbers to hertz
   def mtof(pitch)
     440.0 * (2.0 ** ((pitch.to_f-69)/12))
@@ -32,7 +28,7 @@ module Music
   
   # Convert hertz to midi note numbers
   def ftom(pitch)
-    (69 + 12 * (log2(pitch / 440.0))).round
+    (69 + 12 * (Math.log2(pitch / 440.0))).round
   end
   
   # Cast pitch value as a midi pitch number.
