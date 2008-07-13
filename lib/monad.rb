@@ -1,10 +1,6 @@
 require 'forwardable'
 require 'random'
 
-class Class
-  def ctor; method(:new) end
-end
-
 class Method
   def liftM(*ms) Kernel.liftM(*ms, &self) end
 end
