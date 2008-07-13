@@ -123,7 +123,11 @@ module Music
     
     def repeat(n)
       raise TypeError, "Expected Integer, got #{n.class}." unless Integer === n
-      (1..(n-1)).inject(self) { |mus,rep| mus & self }
+      raise ArgumentError, "Expected non-negative Integer, got #{n}." unless n >= 0
+      if n.zero? then Silence.new(0)
+      else        
+        (1..(n-1)).inject(self) { |mus,rep| mus & self }
+      end
     end
     alias :* :repeat
     

@@ -27,9 +27,14 @@ shared_examples_for "All MusicObjects" do
       (@object * 1).should == @object # Identity
     end
     
-    it "requires an Integer" do
-      proc { (@object * @object) }.should raise_error(TypeError)
-      proc { (@object * 1.0) }.should raise_error(TypeError)
+    it "returns a unit when given 0" do
+      (@object * 0).duration.should be_zero
+    end
+    
+    it "requires a non-negative Integer" do
+      proc { @object * @object }.should raise_error(TypeError)
+      proc { @object * 1.0 }.should raise_error(TypeError)
+      proc { @object * -1 }.should raise_error(ArgumentError)
     end
   end
     
