@@ -207,6 +207,13 @@ module Music
     def initialize(music, attributes = {})
       @music, @attributes = music, attributes
     end
+    
+    def ==(other)
+      case other
+        when Group: @music == other.music
+        else false
+      end
+    end
   end
   
   # Remain silent for the duration.

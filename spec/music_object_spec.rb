@@ -120,6 +120,11 @@ describe Par do
   it "has a duration" do
     @object.duration.should == [@top.duration, @bottom.duration].max
   end
+  
+  it "can be compared" do
+    @top.par(@bottom).should == @object
+    @bottom.par(@top).should_not == @object
+  end
 end
 
 describe Group do
@@ -141,5 +146,13 @@ describe Group do
   
   it "has attributes" do
     @object.attributes.should == @attrs
+  end
+  
+  it "can be compared" do
+    Group.new(@music, @attrs).should == @object
+  end
+  
+  it "can be compared independently of its attributes" do
+    Group.new(@music).should == @object
   end
 end
