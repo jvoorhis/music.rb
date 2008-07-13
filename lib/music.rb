@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'forwardable'
 require 'rational'
 
 module Music
@@ -198,12 +199,22 @@ module Music
     end
   end
   
+  class Group < MusicObject
+    extend Forwardable
+    def_delegators :@music, :duration
+    attr_reader :music, :attributes
+    
+    def initialize(music, attributes = {})
+      @music, @attributes = music, attributes
+    end
+  end
+  
   # Remain silent for the duration.
   class Silence < MusicObject
-    attr :duration
+    attr_reader :duration, :attributes
     
-    def initialize(duration)
-      @duration = duration
+    def initialize(duration, attributes = {})
+      @duration, @attributes = duration, attributes
     end
     
     def ==(other)
@@ -221,10 +232,13 @@ module Music
   
   # A note has a steady pitch and a duration.
   class Note < MusicObject
-    attr_reader :pitch, :duration, :effort
+    attr_reader :pitch, :duration, :effort, :attributes
     
-    def initialize(pitch, duration, effort)
-      @pitch, @duration, @effort = pitch, duration, effort
+    def initialize(pitch, duration, effort, attributes = {})
+      @pitch      = pitch
+      @duration   = duration
+      @effort     = effort
+      @attributes = attributes
     end
     
     def ==(other)
@@ -275,7 +289,12 @@ module Music
   end
   
   class Performance < Array
-    def merge(other) (self + other).sort end
+    def merge(other) (self + other.to_performance).sort end
+  end
+  
+  class ::Array
+    def merge(other) to_performance.merge(other) end
+    def to_performance; Performance[*self] end
   end
   
   class Performer

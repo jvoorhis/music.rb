@@ -16,7 +16,7 @@ end
 
 describe Silence do
   before(:all) do
-    @object = Silence.new(1)
+    @object = Silence.new(1, :fermata => true)
   end
   
   it_should_behave_like "All MusicObjects"
@@ -24,11 +24,15 @@ describe Silence do
   it "should have a duration" do
     @object.duration.should == 1
   end
+  
+  it "should have attributes" do
+    @object.attributes.should == { :fermata => true }
+  end
 end
 
 describe Note do
   before(:all) do
-    @object = Note.new(60, 1, 127)
+    @object = Note.new(60, 1, 127, :fermata => true)
   end
   
   it_should_behave_like "All MusicObjects"
@@ -43,6 +47,10 @@ describe Note do
   
   it "should have effort" do
     @object.effort.should == 127
+  end
+  
+  it "should have attributes" do
+    @object.attributes.should == { :fermata => true }
   end
   
   it "can be transposed" do
@@ -111,5 +119,27 @@ describe Par do
   
   it "has a duration" do
     @object.duration.should == [@top.duration, @bottom.duration].max
+  end
+end
+
+describe Group do
+  before(:all) do
+    @object = Group.new(
+    @music  =   Note.new(60, 2, 100).seq(Note.new(60, 2, 100)),
+    @attrs  =   { :slur => true })
+  end
+  
+  it_should_behave_like "All MusicObjects"
+  
+  it "wraps a MusicObject" do
+    @object.music.should == @music
+  end
+  
+  it "has a duration" do
+    @object.duration.should == @music.duration
+  end
+  
+  it "has attributes" do
+    @object.attributes.should == @attrs
   end
 end

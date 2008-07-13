@@ -1,9 +1,13 @@
-# TODO:
-# * Probability
-# * Markov
-# * Polyphonic support
-# * Music::Performance::OSC
-# * Music::Performance::MIDI
-# * Polyphonic Music::Performance::SMF
-# * rational durations
-# * Loudness / Velocity / Effort / Dynamics?
+TODO:
+* MusicObject
+  * Attributes
+    * Move dynamics to attributes
+  * Group
+  * Atom
+* Performance
+  * Observe attributes
+* QuickSpec
+* Generator
+  * QuickSpec independence
+  * Probability
+  * Markov
