@@ -328,7 +328,7 @@ module Music
   require 'smf'
   
   # Standard Midi File performance.
-  class SMFTranscription
+  class SMFWriter
     include SMF
     
     def initialize(options={})
@@ -336,7 +336,7 @@ module Music
       @seq  = Sequence.new(1, @time.resolution)
     end
     
-    def write(performance, options={})
+    def track(performance, options={})
       @track = Track.new
       seq_name = options.fetch(:name, gen_seq_name)
       @track << SequenceName.new(0, seq_name)

@@ -10,21 +10,17 @@ class Proc
 end
 
 module Kernel
-  def alike?(*objs)
-    if objs.empty? then true
-    else
-      k = objs.first.class
-      objs.all? { |obj| k === obj }
-    end
-  end
-  
   def liftM(*ms, &block)
-    raise ArgumentError, "Given #{ms.size} args, and block of #{block.arity} args." if ms.size != block.arity && block.arity != -1
+    if ms.size != block.arity && block.arity != -1
+      raise ArgumentError,
+          "Given #{ms.size} args, and block of #{block.arity} args."
+    end
+    
     case ms.size
-    when 1: liftM1(*ms, &block)
-    when 2: liftM2(*ms, &block)
-    when 3: liftM3(*ms, &block)
-    else raise ArgumentError, "Cannot lift block of #{block.arity} args."
+      when 1: liftM1(*ms, &block)
+      when 2: liftM2(*ms, &block)
+      when 3: liftM3(*ms, &block)
+      else raise NotImplementedError, "liftM#{ms.size} is undefined."
     end
   end
   
@@ -115,6 +111,24 @@ class Gen
   def self.one_of(gens)
     elements(gens).bind { |g| g }
   end
+  
+  def self.frequency(tbl)
+    # frequency :: [(Int, Gen a)] -> Gen a
+    # frequency xs = choose (1, tot) >>= (`pick` xs)
+    #  where
+    #   tot = sum (map fst xs)
+    # 
+    #   pick n ((k,x):xs)
+    #     | n <= k    = x
+    #     | otherwise = pick (n-k) xs
+    
+    total = tbl.values.sum
+    pick  = proc { |n, gens|
+      (g, k), *rest = gens
+      n <= k ? g : pick[n-k, rest]
+    }
+    (1..total).choose.in { |n| pick[n, tbl.to_a] }
+  end
 end
 
 class Object
@@ -147,4 +161,8 @@ end
 
 class FalseClass
   def self.arbitrary; [true, false].elements end
+end
+
+class Hash
+  def frequency; Gen.frequency(self) end
 end

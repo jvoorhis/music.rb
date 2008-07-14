@@ -1,3 +1,19 @@
+module Kernel
+  def alike?(*objs)
+    if objs.empty? then true
+    else
+      k = objs.first.class
+      objs.all? { |obj| k === obj }
+    end
+  end
+end
+
+class Array
+  def sum
+    inject(0) { |a, b| a + b }
+  end
+end
+
 class Symbol
   def to_proc
     proc { |obj, *args| obj.send(self, *args) }
