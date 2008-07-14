@@ -113,15 +113,6 @@ class Gen
   end
   
   def self.frequency(tbl)
-    # frequency :: [(Int, Gen a)] -> Gen a
-    # frequency xs = choose (1, tot) >>= (`pick` xs)
-    #  where
-    #   tot = sum (map fst xs)
-    # 
-    #   pick n ((k,x):xs)
-    #     | n <= k    = x
-    #     | otherwise = pick (n-k) xs
-    
     total = tbl.values.sum
     pick  = proc { |n, gens|
       (g, k), *rest = gens
