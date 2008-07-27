@@ -165,7 +165,7 @@ module Music
     def perform(performer, c0)
       p1, c1 = left.perform(performer, c0)
       p2, c2 = right.perform(performer, c1)
-      [ p1 + p2, C[c2.time, c0.attributes] ]
+      [ p1 + p2, Context.new(c2.time, c0.attributes) ]
     end
     
     def to_a
@@ -195,8 +195,7 @@ module Music
     def perform(performer, c0)
       p1, c1 = top.perform(performer, c0)
       p2, c2 = bottom.perform(performer, c0)
-      [ p1.merge(p2),
-        C[ [c1.time, c2.time].max, c0.attributes] ]
+      [ p1.merge(p2), Context.new( [c1.time, c2.time].max, c0.attributes) ]
     end
   end
   
@@ -258,7 +257,7 @@ module Music
     end
     
     def transpose(hsteps, dur=self.duration, eff=self.effort)
-      return self.class.new(pitch+hsteps, dur, eff), context
+      return self.class.new(pitch+hsteps, dur, eff)
     end
     
     def perform(performer, c)
@@ -290,13 +289,12 @@ module Music
     def self.[](*events) new(events.flatten) end
     def initialize(events) @events = events end
     def merge(other)
-      T[ (@events + other.events).sort ]
+      Timeline[ (@events + other.events).sort ]
     end
     def +(other)
-      T[ (@events + other.events) ]
+      Timeline[ (@events + other.events) ]
     end
   end
-  T = Timeline # Type alias
   
   class Context < Struct.new(:time, :attributes)
     def self.default; new(0, {}) end
@@ -304,7 +302,6 @@ module Music
       self.class[time + dur, attributes]
     end
   end
-  C = Context
   
   class Performer
     def perform(score)
@@ -312,10 +309,10 @@ module Music
     end
     
     def perform_note(note, context)
-      T[ Event.new(context.time, note) ]
+      Timeline[ Event.new(context.time, note) ]
     end
     
-    def perform_silence(silence, context) T[] end
+    def perform_silence(silence, context) Timeline[] end
   end
   
   class MidiTime
