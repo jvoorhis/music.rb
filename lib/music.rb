@@ -108,8 +108,6 @@ module Music
   end
   
   class MusicObject
-    def duration; 0 end
-    
     # Sequential composition.
     def seq(other)
       Seq.new(self, other)
@@ -134,10 +132,6 @@ module Music
     
     def delay(dur)
       Silence.new(dur) & self
-    end
-    
-    def perform(performer, context)
-      raise NotImplementedError, "Subclass responsibility"
     end
     
     def to_a; [self] end
@@ -165,7 +159,7 @@ module Music
     def perform(performer, c0)
       p1, c1 = left.perform(performer, c0)
       p2, c2 = right.perform(performer, c1)
-      [ p1 + p2, Context.new(c2.time, c0.attributes) ]
+      [ p1 + p2, Context[c2.time, c0.attributes] ]
     end
     
     def transpose(hs)
@@ -199,7 +193,7 @@ module Music
     def perform(performer, c0)
       p1, c1 = top.perform(performer, c0)
       p2, c2 = bottom.perform(performer, c0)
-      [ p1.merge(p2), Context.new( [c1.time, c2.time].max, c0.attributes) ]
+      [ p1.merge(p2), Context[[c1.time, c2.time].max, c0.attributes] ]
     end
     
     def transpose(hs)
