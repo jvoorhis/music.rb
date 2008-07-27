@@ -78,12 +78,12 @@ describe Music do
   describe PitchClass do
     it "should return an instance of PitchClass given any midi pitch number" do
       (60..71).zip([
-          :c, :cis,
-          :d, :dis,
+          :c, :cs,
+          :d, :ds,
           :e,
-          :f, :fis,
-          :g, :gis,
-          :a, :ais,
+          :f, :fs,
+          :g, :gs,
+          :a, :as,
           :b
       ]).each do |m, n|
         PitchClass.for(m).name.should == n

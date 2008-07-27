@@ -17,6 +17,7 @@
 require 'prelude'
 require 'forwardable'
 require 'music/duration'
+require 'music/smf_writer'
 
 module Music
   include Duration
@@ -59,7 +60,7 @@ module Music
   def silence(dur=1)
     Silence.new(dur)
   end
-  alias :rest :silence
+  alias rest silence
   
   # Compose a list of MusicObjects sequentially.
   def line(*objs)
@@ -95,14 +96,14 @@ module Music
     
     def to_s; name.to_s end
     
-    # Western pitch classes. Accidental note names borrowed from LilyPond.
+    # Western pitch classes.
     PITCH_CLASSES = [
-      new(:c, 0), new(:cis, 1),
-      new(:d, 2), new(:dis, 3),
+      new(:c, 0), new(:cs, 1),
+      new(:d, 2), new(:ds, 3),
       new(:e, 4),
-      new(:f, 5), new(:fis, 6),
-      new(:g, 7), new(:gis, 8),
-      new(:a, 9), new(:ais, 10),
+      new(:f, 5), new(:fs, 6),
+      new(:g, 7), new(:gs, 8),
+      new(:a, 9), new(:as, 10),
       new(:b, 11)
     ] unless defined?(PITCH_CLASSES)
   end
@@ -112,13 +113,13 @@ module Music
     def seq(other)
       Seq.new(self, other)
     end
-    alias :& :seq
+    alias & seq
     
     # Parallel (concurrent) composition.
     def par(other)
       Par.new(self, other)
     end
-    alias :| :par
+    alias | par
     
     def repeat(n)
       raise TypeError, "Expected Integer, got #{n.class}." unless Integer === n
@@ -128,7 +129,7 @@ module Music
         (1..(n-1)).inject(self) { |mus,rep| mus & self }
       end
     end
-    alias :* :repeat
+    alias * repeat
     
     def delay(dur)
       Silence.new(dur) & self
@@ -321,63 +322,5 @@ module Music
     end
     
     def perform_silence(silence, context) Timeline[] end
-  end
-  
-  class MidiTime
-    attr :resolution
-    
-    def initialize(res)
-      @resolution = res
-    end
-    
-    def ppqn(val)
-      case val
-        when Numeric
-          (val * resolution).round
-        else
-          raise ArgumentError, "Cannot convert #{val}:#{val.class} to midi time."
-      end
-    end
-  end
-  
-  require 'smf'
-  
-  # Standard Midi File performance.
-  class SMFWriter
-    include SMF
-    
-    def initialize(options={})
-      @time = MidiTime.new(options.fetch(:resolution, 480))
-      @seq  = Sequence.new(1, @time.resolution)
-    end
-    
-    def track(performance, options={})
-      @track = Track.new
-      seq_name = options.fetch(:name, gen_seq_name)
-      @track << SequenceName.new(0, seq_name)
-      @channel = options.fetch(:channel, 1)
-      
-      performance.each do |event|
-        attack  = @time.ppqn(event.time)
-        release = attack + @time.ppqn(event.object.duration)
-        @track << NoteOn.new(attack, @channel, Music.MidiPitch(event.object.pitch), event.object.effort)
-        @track << NoteOff.new(release, @channel, Music.MidiPitch(event.object.pitch), event.object.effort)
-      end
-      
-      @seq << @track
-      self
-    end
-    
-    def save(basename)
-      filename = basename + '.mid'
-      @seq.save(filename)
-    end
-    
-    protected
-      def gen_seq_name
-        @seqn ||= 0
-        @seqn  += 1
-        "Untitled #@seqn"
-      end
   end
 end
