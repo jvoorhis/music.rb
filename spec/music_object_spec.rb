@@ -123,6 +123,10 @@ describe Seq do
     @right.seq(@left).should_not == @object
   end
   
+  it "can be transposed" do
+    @object.transpose(5).should == @left.transpose(5) & @right.transpose(5)
+  end
+  
   it "can be cast to an Array" do
     notes = [60, 64, 67].map { |pit| Note.new(pit, 1, 100) }
     notes.inject { |a,b| a & b }.to_a.should == notes
@@ -154,6 +158,10 @@ describe Par do
     @top.par(@bottom).should == @object
     @bottom.par(@top).should_not == @object
   end
+  
+  it "can be transposed" do
+    @object.transpose(5).should == @top.transpose(5) | @bottom.transpose(5)
+  end
 end
 
 describe Group do
@@ -183,5 +191,9 @@ describe Group do
   
   it "can be compared independently of its attributes" do
     Group.new(@music).should == @object
+  end
+  
+  it "can be transposed" do
+    @object.transpose(5).should == Group.new(@music.transpose(5), @attrs)
   end
 end

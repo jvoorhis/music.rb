@@ -168,6 +168,10 @@ module Music
       [ p1 + p2, Context.new(c2.time, c0.attributes) ]
     end
     
+    def transpose(hs)
+      @left.transpose(hs) & @right.transpose(hs)
+    end
+    
     def to_a
       left.to_a + right.to_a
     end
@@ -197,6 +201,10 @@ module Music
       p2, c2 = bottom.perform(performer, c0)
       [ p1.merge(p2), Context.new( [c1.time, c2.time].max, c0.attributes) ]
     end
+    
+    def transpose(hs)
+      @top.transpose(hs) | @bottom.transpose(hs)
+    end
   end
   
   class Group < MusicObject
@@ -213,6 +221,10 @@ module Music
         when Group: @music == other.music
         else false
       end
+    end
+    
+    def transpose(hs)
+      self.class.new(@music.transpose(hs), @attributes)
     end
   end
   
@@ -234,6 +246,8 @@ module Music
     def perform(performer, c)
       [ performer.perform_silence(self, c), c.advance(@duration) ]
     end
+    
+    def transpose(hs); self end
   end
   Rest = Silence unless defined?(Rest) # Type alias for convenience
   
@@ -256,12 +270,12 @@ module Music
       end
     end
     
-    def transpose(hsteps, dur=self.duration, eff=self.effort)
-      return self.class.new(pitch+hsteps, dur, eff)
-    end
-    
     def perform(performer, c)
       [ performer.perform_note(self, c), c.advance(@duration) ]
+    end
+    
+    def transpose(hs)
+      self.class.new(@pitch+hs, @duration, @effort)
     end
   end
   
