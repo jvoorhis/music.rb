@@ -16,9 +16,10 @@
 
 require 'prelude'
 require 'forwardable'
-require 'rational'
+require 'music/duration'
 
 module Music
+  include Duration
   
   module_function
   # Convert midi note numbers to hertz
@@ -161,8 +162,10 @@ module Music
       left.duration + right.duration
     end
     
-    def perform(performer, context)
-      left.perform(performer, context) + right.perform(performer, context.advance(left.duration))
+    def perform(performer, c0)
+      p1, c1 = left.perform(performer, c0)
+      p2, c2 = right.perform(performer, c1)
+      [ p1 + p2, C[c2.time, c0.attributes] ]
     end
     
     def to_a
@@ -189,8 +192,11 @@ module Music
       [top.duration, bottom.duration].max
     end
     
-    def perform(performer, context)
-      top.perform(performer, context).merge( bottom.perform(performer, context) )
+    def perform(performer, c0)
+      p1, c1 = top.perform(performer, c0)
+      p2, c2 = bottom.perform(performer, c0)
+      [ p1.merge(p2),
+        C[ [c1.time, c2.time].max, c0.attributes] ]
     end
   end
   
@@ -226,8 +232,8 @@ module Music
       end
     end
     
-    def perform(performer, context)
-      performer.perform_silence(self, context)
+    def perform(performer, c)
+      [ performer.perform_silence(self, c), c.advance(@duration) ]
     end
   end
   Rest = Silence unless defined?(Rest) # Type alias for convenience
@@ -252,11 +258,11 @@ module Music
     end
     
     def transpose(hsteps, dur=self.duration, eff=self.effort)
-      self.class.new(pitch+hsteps, dur, eff)
+      return self.class.new(pitch+hsteps, dur, eff), context
     end
     
-    def perform(performer, context)
-      performer.perform_note(self, context)
+    def perform(performer, c)
+      [ performer.perform_note(self, c), c.advance(@duration) ]
     end
   end
   
@@ -274,38 +280,42 @@ module Music
     end
   end
   
-  class Context
-    attr_reader :time
+  class Timeline
+    extend Forwardable
+    include Enumerable
     
-    def initialize(time)
-      @time = time
+    attr_reader :events
+    def_delegators :@events, :each
+    
+    def self.[](*events) new(events.flatten) end
+    def initialize(events) @events = events end
+    def merge(other)
+      T[ (@events + other.events).sort ]
     end
-    
+    def +(other)
+      T[ (@events + other.events) ]
+    end
+  end
+  T = Timeline # Type alias
+  
+  class Context < Struct.new(:time, :attributes)
+    def self.default; new(0, {}) end
     def advance(dur)
-      Context.new( @time + dur )
+      self.class[time + dur, attributes]
     end
   end
-  
-  class Performance < Array
-    def merge(other) (self + other.to_performance).sort end
-  end
-  
-  class ::Array
-    def merge(other) to_performance.merge(other) end
-    def to_performance; Performance[*self] end
-  end
+  C = Context
   
   class Performer
     def perform(score)
-      ctx = Context.new(0)
-      score.perform(self, ctx)
+      score.perform(self, Context.default).first
     end
     
     def perform_note(note, context)
-      Performance[ Event.new(context.time, note) ]
+      T[ Event.new(context.time, note) ]
     end
     
-    def perform_silence(silence, context) Performance[] end
+    def perform_silence(silence, context) T[] end
   end
   
   class MidiTime

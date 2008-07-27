@@ -1,3 +1,5 @@
+require 'rational'
+
 module Kernel
   def alike?(*objs)
     if objs.empty? then true
@@ -5,6 +7,12 @@ module Kernel
       k = objs.first.class
       objs.all? { |obj| k === obj }
     end
+  end
+end
+
+module Enumerable
+  def map_with_index
+    inject([0, []]) { |(i, xs), x| [i + 1, xs + [yield(x, i)]] }[-1]
   end
 end
 
@@ -16,7 +24,7 @@ end
 
 class Symbol
   def to_proc
-    proc { |obj, *args| obj.send(self, *args) }
+    proc { |*args| args.shift.__send__(self, *args) }
   end
 end
 
