@@ -1,5 +1,4 @@
 require File.join( File.dirname(__FILE__), 'spec_helper')
-require 'functor'
 
 include Music
 
@@ -7,7 +6,7 @@ ID = proc { |x| x }
 
 shared_examples_for "All Functors" do
   it "preserves its structure under id" do
-    @object.fmap(&ID).should == @object
+    @object.map(&ID).should == @object
   end
 end
 
@@ -21,7 +20,7 @@ describe Seq do
   it_should_behave_like "All Functors"
   
   it "maps its atoms, but retains its structure" do
-    @object.fmap { |n| n.transpose(7) }.should ==
+    @object.map { |n| n.transpose(7) }.should ==
       Seq.new( Note.new(72, 2, 100), Note.new(71, 2, 100) )
   end
 end
@@ -36,7 +35,7 @@ describe Par do
   it_should_behave_like "All Functors"
   
   it "maps its atoms, but retains its structure" do
-    @object.fmap { |n| n.transpose(7) }.should ==
+    @object.map { |n| n.transpose(7) }.should ==
       Par.new( Note.new(72, 2, 100), Note.new(71, 2, 100) )
   end
 end
@@ -50,7 +49,7 @@ describe Group do
   it_should_behave_like "All Functors"
   
   it "maps its atoms, but retains its structure" do
-    @object.fmap { |n| n.transpose(7) }.should ==
+    @object.map { |n| n.transpose(7) }.should ==
       Group.new( Note.new(72, 2, 100).seq(Note.new(71, 2, 100)) )
   end
 end
@@ -63,7 +62,7 @@ describe Note do
   it_should_behave_like "All Functors"
   
   it "maps itself" do
-    @object.fmap { |n| n.transpose(7) }.should == @object.transpose(7)
+    @object.map { |n| n.transpose(7) }.should == @object.transpose(7)
   end
 end
 
@@ -75,6 +74,6 @@ describe Silence do
   it_should_behave_like "All Functors"
   
   it "maps itself" do
-    @object.fmap { |n| Silence.new(1) }.should == Silence.new(1)
+    @object.map { |n| Silence.new(1) }.should == Silence.new(1)
   end
 end

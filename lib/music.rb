@@ -136,6 +136,15 @@ module Music
     end
     
     def to_a; [self] end
+    
+    def transpose(hs)
+      map do |music|
+        case music
+          when Note: Note.new(music.pitch+hs, music.duration, music.effort,   music.attributes)
+          else music
+        end
+      end
+    end
   end
   
   class Seq < MusicObject
@@ -153,6 +162,10 @@ module Music
       end
     end
     
+    def map(&block)
+      self.class.new(left.map(&block), right.map(&block))
+    end
+    
     def duration
       left.duration + right.duration
     end
@@ -161,10 +174,6 @@ module Music
       p1, c1 = left.perform(performer, c0)
       p2, c2 = right.perform(performer, c1)
       [ p1 + p2, Context[c2.time, c0.attributes] ]
-    end
-    
-    def transpose(hs)
-      @left.transpose(hs) & @right.transpose(hs)
     end
     
     def to_a
@@ -182,9 +191,13 @@ module Music
     def ==(other)
       case other
         when Par
-          top == other.top && bottom == other.bottom
+          @top == other.top && @bottom == other.bottom
         else false
       end
+    end
+    
+    def map(&block)
+      self.class.new(top.map(&block), bottom.map(&block))
     end
     
     def duration
@@ -195,10 +208,6 @@ module Music
       p1, c1 = top.perform(performer, c0)
       p2, c2 = bottom.perform(performer, c0)
       [ p1.merge(p2), Context[[c1.time, c2.time].max, c0.attributes] ]
-    end
-    
-    def transpose(hs)
-      @top.transpose(hs) | @bottom.transpose(hs)
     end
   end
   
@@ -218,8 +227,8 @@ module Music
       end
     end
     
-    def transpose(hs)
-      self.class.new(@music.transpose(hs), @attributes)
+    def map(&block)
+      Group.new(music.map(&block), attributes)
     end
   end
   
@@ -238,11 +247,11 @@ module Music
       end
     end
     
+    def map; yield self end
+    
     def perform(performer, c)
       [ performer.perform_silence(self, c), c.advance(@duration) ]
     end
-    
-    def transpose(hs); self end
   end
   Rest = Silence unless defined?(Rest) # Type alias for convenience
   
@@ -265,12 +274,10 @@ module Music
       end
     end
     
+    def map; yield self end
+    
     def perform(performer, c)
       [ performer.perform_note(self, c), c.advance(@duration) ]
-    end
-    
-    def transpose(hs)
-      self.class.new(@pitch+hs, @duration, @effort)
     end
   end
   
