@@ -13,7 +13,7 @@ shared_examples_for "All MusicObjects" do
     @object.par( Silence.new(0) ).should == par
   end
   
-  describe "repetition" do
+  describe "when repeated" do
     it "sequences an object with itself" do
       (@object * 2).should == (@object & @object) # sequential composition
       (@object * 3).should == (@object & @object & @object) # left-to-right
@@ -24,11 +24,11 @@ shared_examples_for "All MusicObjects" do
     end
     
     it "is equal to itself under the identity" do
-      (@object * 1).should == @object # Identity
+      (@object * 1).should == @object
     end
     
-    it "returns a unit when given 0" do
-      (@object * 0).duration.should be_zero
+    it "returns the unit when given 0" do
+      (@object * 0).should == MusicObject.none
     end
     
     it "requires a non-negative Integer" do
@@ -40,6 +40,16 @@ shared_examples_for "All MusicObjects" do
     
   it "can be delayed with silence" do
     @object.delay(4).should == Seq.new(Silence.new(4), @object)
+  end
+  
+  describe "when reversed" do
+    it "preserevs its duration" do
+      @object.reverse.duration.should == @object.duration
+    end
+    
+    it "is equivalent when reversed twice" do
+      Performer.new.perform(@object.reverse.reverse).should == Performer.new.perform(@object)
+    end
   end
 end
 
@@ -144,11 +154,11 @@ describe Par do
   it_should_behave_like "All MusicObjects"
   
   it "has a top value" do
-    @object.top.should == @top
+    @object.top.should === @top
   end
   
   it "has a bottom value" do
-    @object.bottom.should == @bottom
+    @object.bottom.should === @bottom
   end
   
   it "has a duration" do

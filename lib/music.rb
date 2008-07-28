@@ -166,6 +166,10 @@ module Music
         end
       end
     end
+    
+    def ===(mus)
+      Performer.new.perform(self) == Performer.new.perform(mus)
+    end
   end
   
   class Seq < MusicObject
@@ -194,7 +198,7 @@ module Music
     def perform(performer, c0)
       p1, c1 = left.perform(performer, c0)
       p2, c2 = right.perform(performer, c1)
-      [ p1 + p2, Context(c2.time, c0.attributes) ]
+      [ p1 + p2, Context.new(c2.time, c0.attributes) ]
     end
     
     def take(d)
@@ -214,13 +218,28 @@ module Music
         right.drop(d-dl)
       end
     end
+    
+    def reverse
+      self.class.new(right.reverse, left.reverse)
+    end
   end
   
   class Par < MusicObject
     attr_reader :top, :bottom
     
     def initialize(top, bottom)
-      @top, @bottom = top, bottom
+      dt = top.duration
+      db = bottom.duration
+      
+      if dt == db
+        @top, @bottom = top, bottom
+      elsif dt > db
+        @top    = top
+        @bottom = bottom & rest(dt-db)
+      elsif db > dt
+        @top    = top & rest(db-dt)
+        @bottom = bottom
+      end
     end
     
     def ==(other)
@@ -242,7 +261,7 @@ module Music
     def perform(performer, c0)
       p1, c1 = top.perform(performer, c0)
       p2, c2 = bottom.perform(performer, c0)
-      [ p1.merge(p2), Context([c1.time, c2.time].max, c0.attributes) ]
+      [ p1.merge(p2), Context.new([c1.time, c2.time].max, c0.attributes) ]
     end
     
     def take(d)
@@ -251,6 +270,10 @@ module Music
     
     def drop(d)
       top.drop(d) | bottom.drop(d)
+    end
+    
+    def reverse
+      self.class.new(top.reverse, bottom.reverse)
     end
   end
   
@@ -281,6 +304,13 @@ module Music
     def drop(d)
       self.class.new(music.drop(d), attributes)
     end
+    
+    def reverse
+      self.class.new(music.reverse, attributes)
+    end
+    
+    # TODO: Proper implementation of Group#perform with pushdown attributes.
+    def_delegator :@music, :perform
   end
   
   # Remain silent for the duration.
@@ -316,6 +346,8 @@ module Music
         self.class.new([duration-d.clip_lo(0), 0].max)
       end
     end
+    
+    def reverse; self end
   end
   Rest = Silence unless defined?(Rest) # Type alias for convenience
   
@@ -357,6 +389,8 @@ module Music
         self.class.new(pitch, [duration-d.clip_lo(0), 0].max, effort, attributes)
       end
     end
+    
+    def reverse; self end
   end
   
   class Event
@@ -368,8 +402,12 @@ module Music
       @time, @object = time, obj
     end
     
-    def <=>(ev)
-      time <=> ev.time
+    def ==(other)
+      [time, object] == [other.time, other.object]
+    end
+    
+    def <=>(other)
+      time <=> other.time
     end
   end
   
@@ -388,6 +426,9 @@ module Music
     def +(other)
       Timeline[ (events + other.events) ]
     end
+    def ==(other)
+      events == other.events
+    end
   end
   
   class Context
@@ -397,7 +438,7 @@ module Music
       @time, @attributes = tim, attrs
     end
     def advance(dur)
-      self.class[time + dur, attributes]
+      self.class.new(time + dur, attributes)
     end
   end
   

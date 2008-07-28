@@ -5,4 +5,6 @@ require 'music'
 
 include Music
 
-def eg(*args, &block) it(*args, &block) end
+module Spec::Example::ExampleGroupMethods
+  alias eg it
+end
