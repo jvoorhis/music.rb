@@ -38,3 +38,19 @@ module Math
     Math.log(x) / Math.log(2)
   end
 end  
+
+class Numeric
+  def clip_low(n)
+    self > n ? self : n
+  end
+  alias clip_lo clip_low
+  
+  def clip_high(n)
+    self < n ? self : n
+  end
+  alias clip_hi clip_high
+  
+  def clip(range)
+    clip_low(range.begin).clip_high(range.end)
+  end
+end

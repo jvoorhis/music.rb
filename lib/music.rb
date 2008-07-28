@@ -62,6 +62,10 @@ module Music
   end
   alias rest silence
   
+  def group(mus, attrs)
+    Group.new(mus, attrs)
+  end
+  
   # Compose a list of MusicObjects sequentially.
   def line(*objs)
     objs.inject { |a, b| a & b }
@@ -109,6 +113,10 @@ module Music
   end
   
   class MusicObject
+    # Return the empty MusicObject.
+    def self.none; Silence.new(0) end
+    def none; self.class.none end
+    
     # Sequential composition.
     def seq(other)
       Seq.new(self, other)
@@ -135,12 +143,25 @@ module Music
       Silence.new(dur) & self
     end
     
-    def to_a; [self] end
+    def slice(dur)
+      num2idx = proc do |n|
+        n < 0 ? n + duration : n
+      end
+      
+      case dur
+        when Numeric
+          slice(0..dur)
+        when Range
+          d1, d2 = num2idx[dur.begin], num2idx[dur.end]
+          take(d2).drop(d1)
+      end
+    end
+    alias [] slice
     
     def transpose(hs)
       map do |music|
         case music
-          when Note: Note.new(music.pitch+hs, music.duration, music.effort,   music.attributes)
+          when Note: Note.new(music.pitch+hs, music.duration, music.effort, music.attributes)
           else music
         end
       end
@@ -173,11 +194,25 @@ module Music
     def perform(performer, c0)
       p1, c1 = left.perform(performer, c0)
       p2, c2 = right.perform(performer, c1)
-      [ p1 + p2, Context[c2.time, c0.attributes] ]
+      [ p1 + p2, Context(c2.time, c0.attributes) ]
     end
     
-    def to_a
-      left.to_a + right.to_a
+    def take(d)
+      dl = left.duration
+      if d <= dl
+        left.take(d)
+      else
+        left & right.take(d - dl)
+      end
+    end
+    
+    def drop(d)
+      dl = left.duration
+      if d <= dl
+        left.drop(d) & right
+      else
+        right.drop(d-dl)
+      end
     end
   end
   
@@ -191,7 +226,7 @@ module Music
     def ==(other)
       case other
         when Par
-          @top == other.top && @bottom == other.bottom
+          top == other.top && bottom == other.bottom
         else false
       end
     end
@@ -207,7 +242,15 @@ module Music
     def perform(performer, c0)
       p1, c1 = top.perform(performer, c0)
       p2, c2 = bottom.perform(performer, c0)
-      [ p1.merge(p2), Context[[c1.time, c2.time].max, c0.attributes] ]
+      [ p1.merge(p2), Context([c1.time, c2.time].max, c0.attributes) ]
+    end
+    
+    def take(d)
+      top.take(d) | bottom.take(d)
+    end
+    
+    def drop(d)
+      top.drop(d) | bottom.drop(d)
     end
   end
   
@@ -222,13 +265,21 @@ module Music
     
     def ==(other)
       case other
-        when Group: @music == other.music
+        when Group: music == other.music
         else false
       end
     end
     
     def map(&block)
-      Group.new(music.map(&block), attributes)
+      self.class.new(music.map(&block), attributes)
+    end
+    
+    def take(d)
+      self.class.new(music.take(d), attributes)
+    end
+    
+    def drop(d)
+      self.class.new(music.drop(d), attributes)
     end
   end
   
@@ -242,7 +293,7 @@ module Music
     
     def ==(other)
       case other
-        when Silence: @duration == other.duration
+        when Silence: duration == other.duration
         else false
       end
     end
@@ -250,7 +301,20 @@ module Music
     def map; yield self end
     
     def perform(performer, c)
-      [ performer.perform_silence(self, c), c.advance(@duration) ]
+      [ performer.perform_silence(self, c), c.advance(duration) ]
+    end
+    
+    def take(d)
+      if d <= 0 then none
+      else self.class.new([duration, d].min) end
+    end
+    
+    def drop(d)
+      if d >= duration then none
+      else
+        clipped = d > 0 ? d : 0
+        self.class.new([duration-d.clip_lo(0), 0].max)
+      end
     end
   end
   Rest = Silence unless defined?(Rest) # Type alias for convenience
@@ -269,7 +333,7 @@ module Music
     def ==(other)
       case other
         when Note
-          [@pitch, @duration, @effort] == [other.pitch, other.duration, other.effort]
+          [pitch, duration, effort] == [other.pitch, other.duration, other.effort]
         else false
       end
     end
@@ -277,7 +341,21 @@ module Music
     def map; yield self end
     
     def perform(performer, c)
-      [ performer.perform_note(self, c), c.advance(@duration) ]
+      [ performer.perform_note(self, c), c.advance(duration) ]
+    end
+    
+    def take(d)
+      if d <= 0 then none
+      else
+        self.class.new(pitch, [duration, d].min, effort, attributes)
+      end
+    end
+    
+    def drop(d)
+      if d >= duration then none
+      else
+        self.class.new(pitch, [duration-d.clip_lo(0), 0].max, effort, attributes)
+      end
     end
   end
   
@@ -291,7 +369,7 @@ module Music
     end
     
     def <=>(ev)
-      @time <=> ev.time
+      time <=> ev.time
     end
   end
   
@@ -305,15 +383,19 @@ module Music
     def self.[](*events) new(events.flatten) end
     def initialize(events) @events = events end
     def merge(other)
-      Timeline[ (@events + other.events).sort ]
+      Timeline[ (events + other.events).sort ]
     end
     def +(other)
-      Timeline[ (@events + other.events) ]
+      Timeline[ (events + other.events) ]
     end
   end
   
-  class Context < Struct.new(:time, :attributes)
+  class Context
+    attr_reader :time, :attributes
     def self.default; new(0, {}) end
+    def initialize(tim, attrs)
+      @time, @attributes = tim, attrs
+    end
     def advance(dur)
       self.class[time + dur, attributes]
     end

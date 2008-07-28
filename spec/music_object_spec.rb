@@ -43,6 +43,12 @@ shared_examples_for "All MusicObjects" do
   end
 end
 
+describe MusicObject do
+  it "should return the empty MusicObject" do
+    MusicObject.none.should == Silence.new(0)
+  end
+end
+
 describe Silence do
   before(:all) do
     @object = Silence.new(1, :fermata => true)
@@ -126,11 +132,6 @@ describe Seq do
   it "can be transposed" do
     @object.transpose(5).should == @left.transpose(5) & @right.transpose(5)
   end
-  
-  it "can be cast to an Array" do
-    notes = [60, 64, 67].map { |pit| Note.new(pit, 1, 100) }
-    notes.inject { |a,b| a & b }.to_a.should == notes
-  end
 end
 
 describe Par do
@@ -196,4 +197,118 @@ describe Group do
   it "can be transposed" do
     @object.transpose(5).should == Group.new(@music.transpose(5), @attrs)
   end
+end
+
+# Choose an arbitrary reference duration for atomic
+# and aggregate MusicObjectsm for unit testing.
+RD = 4      # reference duration
+MD = RD / 2 # midpoint
+shared_examples_for "All MusicObjects of reference duration" do
+  
+  describe "can be taken from" do
+    eg "by a shorter duration" do
+      @object.take(MD).duration.should == MD
+    end
+    
+    eg "by zero" do
+      @object.take(0).duration.should be_zero
+    end
+    
+    eg "by a longer duration" do
+      @object.take(RD*2).duration.should == RD
+    end
+    
+    eg "by a negative duration" do
+      @object.take(-1).duration.should be_zero
+    end
+  end
+  
+  describe "can be dropped from" do
+    eg "by a shorter duration" do
+      @object.drop(MD).duration.should == MD
+    end
+    
+    eg "by zero" do
+      @object.drop(0).duration.should == RD
+    end
+    
+    eg "by a longer duration" do
+      @object.drop(RD*2).duration.should be_zero
+    end
+    
+    eg "by a negative duration" do
+      @object.drop(-1).duration.should == RD
+    end
+  end
+  
+  describe "can be sliced" do
+    eg "by range" do
+      @object.slice(0..MD).duration.should == MD
+    end
+    
+    eg "by endpoint" do
+      @object.slice(MD).duration.should == MD
+    end
+    
+    eg "with negative endpoint" do
+      qn = RD/4
+      @object.slice(qn..-qn).duration.should == MD
+    end
+    
+    eg "with negative start and endpoints" do
+      qn    = RD/4
+      range = -(qn*2)-1..-qn
+       (-3..-1).should == range # example
+      @object.slice(range).duration.should == MD
+    end    
+  end
+end
+
+describe "Seq of reference duration" do
+  before(:all) do
+    @object = Seq.new(
+    @left   =   Silence.new(RD/2),
+    @right  =   Note.new(60, RD/2, 100))
+  end
+  
+  it_should_behave_like "All MusicObjects of reference duration"
+end
+
+describe "Par of reference duration" do
+  before(:all) do
+    hn = RD/4
+    @object = Par.new(
+    @left   =   Note.new(64, hn, 100).seq(Note.new(64, hn, 100)),
+    @right  =   Note.new(60, RD, 100))
+  end
+  
+  it_should_behave_like "All MusicObjects of reference duration"
+end
+
+describe "Group of reference duration" do
+  before(:all) do
+    hn = RD/4
+    @object = Group.new(
+                Note.new(64, hn, 100).seq(
+                  Note.new(64, hn, 100)).par(
+                  Note.new(60, RD, 100)), {})
+  end
+  
+  it_should_behave_like "All MusicObjects of reference duration"
+end
+
+describe "Note of reference duration" do
+  before(:all) do
+    @object = Note.new(60, RD, 100)
+  end
+  
+  it_should_behave_like "All MusicObjects of reference duration"
+end
+
+describe "Silence of reference duration" do
+  before(:all) do
+    @object = Silence.new(RD)
+  end
+  
+  it_should_behave_like "All MusicObjects of reference duration"
 end
