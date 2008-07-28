@@ -129,6 +129,11 @@ module Music
     end
     alias | par
     
+    def /(other)
+      d = [duration, other.duration].min
+      take(d) | other.take(d)
+    end
+    
     def repeat(n)
       raise TypeError, "Expected Integer, got #{n.class}." unless Integer === n
       raise ArgumentError, "Expected non-negative Integer, got #{n}." unless n >= 0

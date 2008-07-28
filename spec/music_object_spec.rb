@@ -216,61 +216,68 @@ MD = RD / 2 # midpoint
 shared_examples_for "All MusicObjects of reference duration" do
   
   describe "can be taken from" do
-    eg "by a shorter duration" do
+    it "by a shorter duration" do
       @object.take(MD).duration.should == MD
     end
     
-    eg "by zero" do
+    it "by zero" do
       @object.take(0).duration.should be_zero
     end
     
-    eg "by a longer duration" do
+    it "by a longer duration" do
       @object.take(RD*2).duration.should == RD
     end
     
-    eg "by a negative duration" do
+    it "by a negative duration" do
       @object.take(-1).duration.should be_zero
     end
   end
   
   describe "can be dropped from" do
-    eg "by a shorter duration" do
+    it "by a shorter duration" do
       @object.drop(MD).duration.should == MD
     end
     
-    eg "by zero" do
+    it "by zero" do
       @object.drop(0).duration.should == RD
     end
     
-    eg "by a longer duration" do
+    it "by a longer duration" do
       @object.drop(RD*2).duration.should be_zero
     end
     
-    eg "by a negative duration" do
+    it "by a negative duration" do
       @object.drop(-1).duration.should == RD
     end
   end
   
   describe "can be sliced" do
-    eg "by range" do
+    it "by range" do
       @object.slice(0..MD).duration.should == MD
     end
     
-    eg "by endpoint" do
+    it "by endpoint" do
       @object.slice(MD).duration.should == MD
     end
     
-    eg "with negative endpoint" do
+    it "with negative endpoint" do
       qn = RD/4
       @object.slice(qn..-qn).duration.should == MD
     end
     
-    eg "with negative start and endpoints" do
+    it "with negative start and endpoints" do
       qn    = RD/4
       range = -(qn*2)-1..-qn
        (-3..-1).should == range # example
       @object.slice(range).duration.should == MD
-    end    
+    end
+  end
+  
+  describe "in truncating parallel composition" do
+    it "will have a duration equal to the shortest tree" do
+      (@object / rest(RD*2)).duration.should == RD
+      (@object / rest(RD/2)).duration.should == RD/2
+    end
   end
 end
 
