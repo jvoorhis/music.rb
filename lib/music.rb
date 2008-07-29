@@ -178,10 +178,11 @@ module Music
   end
   
   class Seq < MusicObject
-    attr_reader :left, :right
+    attr_reader :left, :right, :duration
     
     def initialize(left, right)
       @left, @right = left, right
+      @duration = @left.duration + @right.duration
     end
     
     def ==(other)
@@ -194,10 +195,6 @@ module Music
     
     def map(&block)
       self.class.new(left.map(&block), right.map(&block))
-    end
-    
-    def duration
-      left.duration + right.duration
     end
     
     def perform(performer, c0)
@@ -230,7 +227,7 @@ module Music
   end
   
   class Par < MusicObject
-    attr_reader :top, :bottom
+    attr_reader :top, :bottom, :duration
     
     def initialize(top, bottom)
       dt = top.duration
@@ -245,6 +242,8 @@ module Music
         @top    = top & rest(db-dt)
         @bottom = bottom
       end
+      
+      @duration = [@top.duration, @bottom.duration].max
     end
     
     def ==(other)
@@ -257,10 +256,6 @@ module Music
     
     def map(&block)
       self.class.new(top.map(&block), bottom.map(&block))
-    end
-    
-    def duration
-      [top.duration, bottom.duration].max
     end
     
     def perform(performer, c0)
