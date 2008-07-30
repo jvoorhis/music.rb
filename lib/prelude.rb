@@ -10,6 +10,10 @@ module Kernel
   end
 end
 
+class Object
+  def returning(s,&k) k[s]; s end
+end
+
 module Enumerable
   def map_with_index
     inject([0, []]) { |(i, xs), x| [i + 1, xs + [yield(x, i)]] }[-1]
