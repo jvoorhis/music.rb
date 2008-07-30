@@ -43,7 +43,7 @@ shared_examples_for "All MusicObjects" do
   end
   
   describe "when reversed" do
-    it "preserevs its duration" do
+    it "preserves its duration" do
       @object.reverse.duration.should == @object.duration
     end
     
@@ -90,8 +90,8 @@ describe Note do
     @object.duration.should == 1
   end
   
-  it "should have effort" do
-    @object.effort.should == 127
+  it "should have velocity" do
+    @object.velocity.should == 127
   end
   
   it "should have attributes" do

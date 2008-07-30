@@ -166,7 +166,7 @@ module Music
     def transpose(hs)
       map do |music|
         case music
-          when Note: Note.new(music.pitch+hs, music.duration, music.effort, music.attributes)
+          when Note: Note.new(music.pitch+hs, music.duration, music.velocity, music.attributes)
           else music
         end
       end
@@ -353,19 +353,19 @@ module Music
   
   # A note has a steady pitch and a duration.
   class Note < MusicObject
-    attr_reader :pitch, :duration, :effort, :attributes
+    attr_reader :pitch, :duration, :velocity, :attributes
     
-    def initialize(pitch, duration, effort, attributes = {})
+    def initialize(pitch, duration, velocity, attributes = {})
       @pitch      = pitch
       @duration   = duration
-      @effort     = effort
+      @velocity   = velocity
       @attributes = attributes
     end
     
     def ==(other)
       case other
         when Note
-          [pitch, duration, effort] == [other.pitch, other.duration, other.effort]
+          [pitch, duration, velocity] == [other.pitch, other.duration, other.velocity]
         else false
       end
     end
@@ -379,14 +379,14 @@ module Music
     def take(d)
       if d <= 0 then none
       else
-        self.class.new(pitch, [duration, d].min, effort, attributes)
+        self.class.new(pitch, [duration, d].min, velocity, attributes)
       end
     end
     
     def drop(d)
       if d >= duration then none
       else
-        self.class.new(pitch, [duration-d.clip_lo(0), 0].max, effort, attributes)
+        self.class.new(pitch, [duration-d.clip_lo(0), 0].max, velocity, attributes)
       end
     end
     
