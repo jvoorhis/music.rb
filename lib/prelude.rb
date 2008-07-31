@@ -1,5 +1,7 @@
 require 'rational'
 
+ID = lambda { |x| x }
+
 module Kernel
   def alike?(*objs)
     if objs.empty? then true

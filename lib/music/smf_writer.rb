@@ -20,8 +20,8 @@ module Music
       performance.each do |event|
         attack  = @time.ppqn(event.time)
         release = attack + @time.ppqn(event.object.duration)
-        @track << NoteOn.new(attack, @channel, Music.MidiPitch(event.object.pitch), event.object.effort)
-        @track << NoteOff.new(release, @channel, Music.MidiPitch(event.object.pitch), event.object.effort)
+        @track << NoteOn.new(attack, @channel, Music.MidiPitch(event.object.pitch), event.object.velocity)
+        @track << NoteOff.new(release, @channel, Music.MidiPitch(event.object.pitch), event.object.velocity)
       end
       
       @seq << @track

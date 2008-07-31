@@ -1,16 +1,20 @@
 require File.join( File.dirname(__FILE__), 'spec_helper')
 
-shared_examples_for "All MusicObjects" do
+shared_examples_for "all arrangements" do
   it "can be composed sequentially" do
-    seq = Seq.new(@object,Silence.new(0))
-    ( @object & Silence.new(0) ).should  == seq
-    @object.seq( Silence.new(0) ).should == seq
+    seq = Seq.new(@object, silence(0))
+    ( @object & silence(0) ).should  == seq
+    @object.seq( silence(0) ).should == seq
   end
   
   it "can be composed in parallel" do
-    par = Par.new(@object, Silence.new(0))
-    ( @object | Silence.new(0) ).should  == par
-    @object.par( Silence.new(0) ).should == par
+    par = Par.new(@object, silence(0))
+    ( @object | silence(0) ).should  == par
+    @object.par( silence(0) ).should == par
+  end
+  
+  it "preserves its structure when mapped with the identity function" do
+    @object.map(&ID).should == @object
   end
   
   describe "when repeated" do
@@ -28,7 +32,7 @@ shared_examples_for "All MusicObjects" do
     end
     
     it "returns the unit when given 0" do
-      (@object * 0).should == MusicObject.none
+      (@object * 0).should == Arrangement::Base.none
     end
     
     it "requires a non-negative Integer" do
@@ -39,7 +43,7 @@ shared_examples_for "All MusicObjects" do
   end
     
   it "can be delayed with silence" do
-    @object.delay(4).should == Seq.new(Silence.new(4), @object)
+    @object.delay(4).should == Seq.new(silence(4), @object)
   end
   
   describe "when reversed" do
@@ -48,79 +52,23 @@ shared_examples_for "All MusicObjects" do
     end
     
     it "is equivalent when reversed twice" do
-      Performer.new.perform(@object.reverse.reverse).should == Performer.new.perform(@object)
+      Performer.perform(@object.reverse.reverse).should == Performer.perform(@object)
     end
   end
 end
 
-describe MusicObject do
+describe Arrangement::Base do
   it "should return the empty MusicObject" do
-    MusicObject.none.should == Silence.new(0)
-  end
-end
-
-describe Silence do
-  before(:all) do
-    @object = Silence.new(1, :fermata => true)
-  end
-  
-  it_should_behave_like "All MusicObjects"
-  
-  it "should have a duration" do
-    @object.duration.should == 1
-  end
-  
-  it "should have attributes" do
-    @object.attributes.should == { :fermata => true }
-  end
-end
-
-describe Note do
-  before(:all) do
-    @object = Note.new(60, 1, 127, :fermata => true)
-  end
-  
-  it_should_behave_like "All MusicObjects"
-  
-  it "should have a pitch" do
-    @object.pitch.should == 60
-  end
-  
-  it "should have a duration" do
-    @object.duration.should == 1
-  end
-  
-  it "should have velocity" do
-    @object.velocity.should == 127
-  end
-  
-  it "should have attributes" do
-    @object.attributes.should == { :fermata => true }
-  end
-  
-  it "can be transposed" do
-    @object.transpose(2).should == Note.new(62, 1, 127)
-  end
-  
-  it "can be compared" do
-    [ Note.new(60,1,127),
-      Note.new(60,1.0,127),
-      Note.new(60,1.quo(1),127)
-    ].each { |val| val.should == @object }
-    [ Silence.new(1),
-      MusicObject.allocate
-    ].each { |val| val.should_not == @object }
+    Arrangement::Base.none.should == Item.new( Silence.new(0) )
   end
 end
 
 describe Seq do
   before(:all) do
-    @object = Seq.new( 
-    @left   =   Note.new(60,2,127), 
-    @right  =   Silence.new(3))
+    @object = ((@left = note(60,2,127)) & (@right = silence(3)))
   end
   
-  it_should_behave_like "All MusicObjects"
+  it_should_behave_like "all arrangements"
   
   it "has a left value" do
     @object.left.should == @left
@@ -142,16 +90,19 @@ describe Seq do
   it "can be transposed" do
     @object.transpose(5).should == @left.transpose(5) & @right.transpose(5)
   end
+  
+  it "maps its contents, but retains its structure" do
+    @object.map { |n| n.transpose(7) }.should ==
+        @object.left.transpose(7) & @object.right.transpose(7)
+  end
 end
 
 describe Par do
   before(:all) do
-    @object = Par.new(
-    @top    =   Note.new(60,2,127),
-    @bottom =   Silence.new(3))
+    @object = ((@top = note(60,2,127)) | (@bottom = silence(3)))
   end
   
-  it_should_behave_like "All MusicObjects"
+  it_should_behave_like "all arrangements"
   
   it "has a top value" do
     @object.top.should === @top
@@ -173,16 +124,21 @@ describe Par do
   it "can be transposed" do
     @object.transpose(5).should == @top.transpose(5) | @bottom.transpose(5)
   end
+  
+  it "maps its contents, but retains its structure" do
+    @object.map { |n| n.transpose(7) }.should ==
+        @object.top.transpose(7) | @object.bottom.transpose(7)
+  end
 end
 
 describe Group do
   before(:all) do
-    @object = Group.new(
-    @music  =   Note.new(60, 2, 100).seq(Note.new(60, 2, 100)),
-    @attrs  =   { :slur => true })
+    @object = group(
+    @music  =   note(60, 2, 100) & note(60, 2, 100, :accented => nil),
+    @attrs  =   { :slur => true, :accented => true })
   end
   
-  it_should_behave_like "All MusicObjects"
+  it_should_behave_like "all arrangements"
   
   it "wraps a MusicObject" do
     @object.music.should == @music
@@ -207,13 +163,40 @@ describe Group do
   it "can be transposed" do
     @object.transpose(5).should == Group.new(@music.transpose(5), @attrs)
   end
+  
+  it "should provide inherited attributes when interpreted" do
+    timeline = Performer.perform(@object)
+    timeline.events.all? { |e| e.object.attributes[:slur] }.should be_true
+    
+    timeline[0].object.attributes[:accented].should be_true
+    timeline[1].object.attributes[:accented].should be_nil
+  end
+  
+  it "maps its contents, but retains its structure" do
+    @object.map { |n| n.transpose(7) }.should ==
+        group( @object.music.transpose(7), @object.attributes )
+  end
+end
+
+describe Item do
+  before(:all) do
+    @object = note(60)
+  end
+  
+  it "equals itself when reversed" do
+    @object.reverse.should == @object
+  end
+  
+  it "maps its contents, but retains its structure" do
+    @object.map { |n| n.transpose(7) }.should == note(67)
+  end
 end
 
 # Choose an arbitrary reference duration for atomic
 # and aggregate MusicObjectsm for unit testing.
 RD = 4      # reference duration
 MD = RD / 2 # midpoint
-shared_examples_for "All MusicObjects of reference duration" do
+shared_examples_for "all arrangements of reference duration" do
   
   describe "can be taken from" do
     it "by a shorter duration" do
@@ -283,49 +266,72 @@ end
 
 describe "Seq of reference duration" do
   before(:all) do
-    @object = Seq.new(
-    @left   =   Silence.new(RD/2),
-    @right  =   Note.new(60, RD/2, 100))
+    @object = (@left = silence(RD/2) & @right = note(60, RD/2, 100))
   end
   
-  it_should_behave_like "All MusicObjects of reference duration"
+  it_should_behave_like "all arrangements of reference duration"
 end
 
 describe "Par of reference duration" do
   before(:all) do
     hn = RD/4
-    @object = Par.new(
-    @left   =   Note.new(64, hn, 100).seq(Note.new(64, hn, 100)),
-    @right  =   Note.new(60, RD, 100))
+    @object = ((@left = note(64, hn, 100) & note(64, hn, 100)) | (@right = note(60, RD, 100)))
   end
   
-  it_should_behave_like "All MusicObjects of reference duration"
+  it_should_behave_like "all arrangements of reference duration"
 end
 
 describe "Group of reference duration" do
   before(:all) do
     hn = RD/4
-    @object = Group.new(
-                Note.new(64, hn, 100).seq(
-                  Note.new(64, hn, 100)).par(
-                  Note.new(60, RD, 100)), {})
+    @object = group( note(64, hn, 100) & note(64, hn, 100) | note(60, RD, 100), {} )
   end
   
-  it_should_behave_like "All MusicObjects of reference duration"
+  it_should_behave_like "all arrangements of reference duration"
 end
 
-describe "Note of reference duration" do
+describe "Item of reference duration" do
   before(:all) do
-    @object = Note.new(60, RD, 100)
+    @object = note(60, RD, 100)
   end
   
-  it_should_behave_like "All MusicObjects of reference duration"
+  it_should_behave_like "all arrangements of reference duration"
 end
 
 describe "Silence of reference duration" do
   before(:all) do
-    @object = Silence.new(RD)
+    @object = silence(RD)
   end
   
-  it_should_behave_like "All MusicObjects of reference duration"
+  it_should_behave_like "all arrangements of reference duration"
 end
+
+describe "helper functions" do
+  it "should arrange notes" do
+    note(60).should      == Item.new( Note.new(60,1,100) )
+    note(60,2).should    == Item.new( Note.new(60,2,100) )
+    note(60,3,80).should == Item.new( Note.new(60,3,80) )
+  end
+  
+  it "should arrange silence" do
+    rest().should  == Item.new( Silence.new(1) )
+    rest(2).should == Item.new( Silence.new(2) )
+  end
+  
+  it "should arrange groups" do
+    group(note(67) & note(60), {}).should == Group.new(note(67) & note(60), {})
+  end
+  
+  it "should create the empty arrangement" do
+    none().should == silence(0)
+  end
+  
+  it "should compose lists of arrangements sequentially" do
+    line(note(60), note(64), note(67)).should == note(60) & note(64) & note(67)
+  end
+  
+  it "should compose lists of arrangements in parallel" do
+    chord(note(60), note(64), note(67)).should == note(60) | note(64) | note(67)
+  end
+end
+  

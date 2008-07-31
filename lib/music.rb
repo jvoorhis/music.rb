@@ -16,24 +16,43 @@
 
 require 'prelude'
 require 'forwardable'
+require 'music/objects'
 require 'music/duration'
+require 'music/arrangement'
 require 'music/smf_writer'
 
 module Music
   include Duration
+  include Objects
+  include Arrangement
   
   module_function
-  # Convert midi note numbers to hertz
+  
+=begin
+
+Pitch conversion utilities.
+
+The standard mtof and ftom functions are defined. In both of these functions,
+Hertz is represented by Float, and midi pitch is represented by Integer. Two
+additional helpers are also defined: Hertz and MidiPitch. Hertz accepts both
+kinds of Integer and Float, but treats Integer values as midi pitch. Float
+values are assumed to be in Hertz, and are not converted. The advantage is that
+they can be used to implement MusicObject interpreters where Note's pitch
+representation is polymorphic. 
+
+=end
+  
+  # Convert midi note numbers to hertz.
   def mtof(pitch)
     440.0 * (2.0 ** ((pitch.to_f-69)/12))
   end
   
-  # Convert hertz to midi note numbers
+  # Convert hertz to midi note numbers.
   def ftom(pitch)
     (69 + 12 * (Math.log2(pitch / 440.0))).round
   end
   
-  # Cast pitch value as a midi pitch number.
+  # Convert any pitch value to midi. 
   def MidiPitch(pitch)
     case pitch
       when Integer then pitch
@@ -42,38 +61,13 @@ module Music
     end
   end
   
-  # Cast pitch value as hertz.
+  # Convert a midi pitch value to Hertz.
   def Hertz(pitch)
     case pitch
       when Integer then mtof(pitch)
       when Float then pitch
       else raise ArgumentError, "Cannot cast #{pitch.class} to hertz."
     end
-  end
-  
-  # Construct a Note.
-  def note(pit, dur=1, vel=100)
-    Note.new(pit, dur, vel)
-  end
-  
-  # Construct a Silence.
-  def silence(dur=1)
-    Silence.new(dur)
-  end
-  alias rest silence
-  
-  def group(mus, attrs)
-    Group.new(mus, attrs)
-  end
-  
-  # Compose a list of MusicObjects sequentially.
-  def line(*objs)
-    objs.inject { |a, b| a & b }
-  end
-  
-  # Compose a list of MusicObjects in parallel.
-  def chord(*objs)
-    objs.inject { |a, b| a | b }
   end
   
   class Pitch
@@ -112,287 +106,6 @@ module Music
     ] unless defined?(PITCH_CLASSES)
   end
   
-  class MusicObject
-    # Return the empty MusicObject.
-    def self.none; Silence.new(0) end
-    def none; self.class.none end
-    
-    # Sequential composition.
-    def seq(other)
-      Seq.new(self, other)
-    end
-    alias & seq
-    
-    # Parallel (concurrent) composition.
-    def par(other)
-      Par.new(self, other)
-    end
-    alias | par
-    
-    def /(other)
-      d = [duration, other.duration].min
-      take(d) | other.take(d)
-    end
-    
-    def repeat(n)
-      raise TypeError, "Expected Integer, got #{n.class}." unless Integer === n
-      raise ArgumentError, "Expected non-negative Integer, got #{n}." unless n >= 0
-      if n.zero? then Silence.new(0)
-      else        
-        (1..(n-1)).inject(self) { |mus,rep| mus & self }
-      end
-    end
-    alias * repeat
-    
-    def delay(dur)
-      Silence.new(dur) & self
-    end
-    
-    def slice(dur)
-      num2idx = proc do |n|
-        n < 0 ? n + duration : n
-      end
-      
-      case dur
-        when Numeric
-          slice(0..dur)
-        when Range
-          d1, d2 = num2idx[dur.begin], num2idx[dur.end]
-          take(d2).drop(d1)
-      end
-    end
-    alias [] slice
-    
-    def transpose(hs)
-      map do |music|
-        case music
-          when Note: Note.new(music.pitch+hs, music.duration, music.velocity, music.attributes)
-          else music
-        end
-      end
-    end
-    
-    def ===(mus)
-      Performer.new.perform(self) == Performer.new.perform(mus)
-    end
-  end
-  
-  class Seq < MusicObject
-    attr_reader :left, :right, :duration
-    
-    def initialize(left, right)
-      @left, @right = left, right
-      @duration = @left.duration + @right.duration
-    end
-    
-    def ==(other)
-      case other
-        when Seq
-          left == other.left && right == other.right
-        else false
-      end
-    end
-    
-    def map(&block)
-      self.class.new(left.map(&block), right.map(&block))
-    end
-    
-    def perform(performer, c0)
-      p1, c1 = left.perform(performer, c0)
-      p2, c2 = right.perform(performer, c1)
-      [ p1 + p2, Context.new(c2.time, c0.attributes) ]
-    end
-    
-    def take(d)
-      dl = left.duration
-      if d <= dl
-        left.take(d)
-      else
-        left & right.take(d - dl)
-      end
-    end
-    
-    def drop(d)
-      dl = left.duration
-      if d <= dl
-        left.drop(d) & right
-      else
-        right.drop(d-dl)
-      end
-    end
-    
-    def reverse
-      self.class.new(right.reverse, left.reverse)
-    end
-  end
-  
-  class Par < MusicObject
-    attr_reader :top, :bottom, :duration
-    
-    def initialize(top, bottom)
-      dt = top.duration
-      db = bottom.duration
-      
-      if dt == db
-        @top, @bottom = top, bottom
-      elsif dt > db
-        @top    = top
-        @bottom = bottom & rest(dt-db)
-      elsif db > dt
-        @top    = top & rest(db-dt)
-        @bottom = bottom
-      end
-      
-      @duration = [@top.duration, @bottom.duration].max
-    end
-    
-    def ==(other)
-      case other
-        when Par
-          top == other.top && bottom == other.bottom
-        else false
-      end
-    end
-    
-    def map(&block)
-      self.class.new(top.map(&block), bottom.map(&block))
-    end
-    
-    def perform(performer, c0)
-      p1, c1 = top.perform(performer, c0)
-      p2, c2 = bottom.perform(performer, c0)
-      [ p1.merge(p2), Context.new([c1.time, c2.time].max, c0.attributes) ]
-    end
-    
-    def take(d)
-      top.take(d) | bottom.take(d)
-    end
-    
-    def drop(d)
-      top.drop(d) | bottom.drop(d)
-    end
-    
-    def reverse
-      self.class.new(top.reverse, bottom.reverse)
-    end
-  end
-  
-  class Group < MusicObject
-    extend Forwardable
-    def_delegators :@music, :duration
-    attr_reader :music, :attributes
-    
-    def initialize(music, attributes = {})
-      @music, @attributes = music, attributes
-    end
-    
-    def ==(other)
-      case other
-        when Group: music == other.music
-        else false
-      end
-    end
-    
-    def map(&block)
-      self.class.new(music.map(&block), attributes)
-    end
-    
-    def take(d)
-      self.class.new(music.take(d), attributes)
-    end
-    
-    def drop(d)
-      self.class.new(music.drop(d), attributes)
-    end
-    
-    def reverse
-      self.class.new(music.reverse, attributes)
-    end
-    
-    # TODO: Proper implementation of Group#perform with pushdown attributes.
-    def_delegator :@music, :perform
-  end
-  
-  # Remain silent for the duration.
-  class Silence < MusicObject
-    attr_reader :duration, :attributes
-    
-    def initialize(duration, attributes = {})
-      @duration, @attributes = duration, attributes
-    end
-    
-    def ==(other)
-      case other
-        when Silence: duration == other.duration
-        else false
-      end
-    end
-    
-    def map; yield self end
-    
-    def perform(performer, c)
-      [ performer.perform_silence(self, c), c.advance(duration) ]
-    end
-    
-    def take(d)
-      if d <= 0 then none
-      else self.class.new([duration, d].min) end
-    end
-    
-    def drop(d)
-      if d >= duration then none
-      else
-        clipped = d > 0 ? d : 0
-        self.class.new([duration-d.clip_lo(0), 0].max)
-      end
-    end
-    
-    def reverse; self end
-  end
-  Rest = Silence unless defined?(Rest) # Type alias for convenience
-  
-  # A note has a steady pitch and a duration.
-  class Note < MusicObject
-    attr_reader :pitch, :duration, :velocity, :attributes
-    
-    def initialize(pitch, duration, velocity, attributes = {})
-      @pitch      = pitch
-      @duration   = duration
-      @velocity   = velocity
-      @attributes = attributes
-    end
-    
-    def ==(other)
-      case other
-        when Note
-          [pitch, duration, velocity] == [other.pitch, other.duration, other.velocity]
-        else false
-      end
-    end
-    
-    def map; yield self end
-    
-    def perform(performer, c)
-      [ performer.perform_note(self, c), c.advance(duration) ]
-    end
-    
-    def take(d)
-      if d <= 0 then none
-      else
-        self.class.new(pitch, [duration, d].min, velocity, attributes)
-      end
-    end
-    
-    def drop(d)
-      if d >= duration then none
-      else
-        self.class.new(pitch, [duration-d.clip_lo(0), 0].max, velocity, attributes)
-      end
-    end
-    
-    def reverse; self end
-  end
-  
   class Event
     include Comparable
     
@@ -416,16 +129,20 @@ module Music
     include Enumerable
     
     attr_reader :events
-    def_delegators :@events, :each
+    def_delegators :@events, :each, :[]
     
     def self.[](*events) new(events.flatten) end
+    
     def initialize(events) @events = events end
+    
     def merge(other)
       Timeline[ (events + other.events).sort ]
     end
+    
     def +(other)
       Timeline[ (events + other.events) ]
     end
+    
     def ==(other)
       events == other.events
     end
@@ -433,22 +150,30 @@ module Music
   
   class Context
     attr_reader :time, :attributes
+    
     def self.default; new(0, {}) end
+    
     def initialize(tim, attrs)
       @time, @attributes = tim, attrs
     end
+    
     def advance(dur)
       self.class.new(time + dur, attributes)
     end
   end
   
   class Performer
+    def self.perform(score) new.perform(score) end
+    
     def perform(score)
       score.perform(self, Context.default).first
     end
     
     def perform_note(note, context)
-      Timeline[ Event.new(context.time, note) ]
+      Timeline[
+        Event.new(context.time,
+                  Note.new(note.pitch, note.duration, note.velocity,
+                           context.attributes.merge(note.attributes))) ]
     end
     
     def perform_silence(silence, context) Timeline[] end

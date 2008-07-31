@@ -38,27 +38,6 @@ describe Music do
     end
   end
   
-  describe "helper functions" do
-    it "should construct a note" do
-      note(60).should      == Note.new(60,1,100)
-      note(60,2).should    == Note.new(60,2,100)
-      note(60,3,80).should == Note.new(60,3,80)
-    end
-    
-    it "should construct a rest" do
-      rest().should  == Silence.new(1)
-      rest(2).should == Silence.new(2)
-    end
-    
-    it "should compose lists of music objects sequentially" do
-      line(note(60), note(64), note(67)).should == note(60) & note(64) & note(67)
-    end
-    
-    it "should compose lists of music objects in parallel" do
-      chord(note(60), note(64), note(67)).should == note(60) | note(64) | note(67)
-    end
-  end
-  
   describe Pitch do
     before(:all) do
       @pitch = Pitch.new(
