@@ -172,7 +172,7 @@ representation is polymorphic.
     def perform_note(note, context)
       Timeline[
         Event.new(context.time,
-                  Note.new(note.pitch, note.duration, note.velocity,
+                  Note.new(note.pitch, note.duration,
                            context.attributes.merge(note.attributes))) ]
     end
     

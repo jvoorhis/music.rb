@@ -85,7 +85,7 @@ module Music
       def transpose(hs)
         map do |music|
           case music
-            when Note: Note.new(music.pitch+hs, music.duration, music.velocity, music.attributes)
+            when Note: Note.new(music.pitch+hs, music.duration, music.attributes)
             else music
           end
         end
@@ -273,8 +273,8 @@ module Music
     module_function
     
     # Arrange a note.
-    def note(pit, dur = 1, vel = 100, attrs = {})
-      Item.new( Note.new(pit, dur, vel, attrs) )
+    def note(pit, dur = 1, attrs = {})
+      Item.new( Note.new(pit, dur, attrs) )
     end
     
     # Arrange silence.

@@ -46,25 +46,24 @@ module Music
     
     # A note has a steady pitch and a duration.
     class Note < Base
-      attr_reader :pitch, :duration, :velocity, :attributes
+      attr_reader :pitch, :duration, :attributes
       
-      def initialize(pitch, duration, velocity, attributes = {})
+      def initialize(pitch, duration, attributes = {})
         @pitch      = pitch
         @duration   = duration
-        @velocity   = velocity
         @attributes = attributes
       end
       
       def ==(other)
         case other
           when Note
-            [pitch, duration, velocity] == [other.pitch, other.duration, other.velocity]
+            [pitch, duration] == [other.pitch, other.duration]
           else false
         end
       end
       
       def transpose(interval)
-        self.class.new(pitch + interval, duration, velocity, attributes)
+        self.class.new(pitch + interval, duration, attributes)
       end
       
       def perform(performer, c)
@@ -74,14 +73,14 @@ module Music
       def take(d)
         if d <= 0 then none
         else
-          self.class.new(pitch, [duration, d].min, velocity, attributes)
+          self.class.new(pitch, [duration, d].min, attributes)
         end
       end
       
       def drop(d)
         if d >= duration then none
         else
-          self.class.new(pitch, [duration-d.clip_lo(0), 0].max, velocity, attributes)
+          self.class.new(pitch, [duration-d.clip_lo(0), 0].max, attributes)
         end
       end
     end

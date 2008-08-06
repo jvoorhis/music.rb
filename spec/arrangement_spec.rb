@@ -65,7 +65,7 @@ end
 
 describe Seq do
   before(:all) do
-    @object = ((@left = note(60,2,127)) & (@right = silence(3)))
+    @object = ((@left = note(60, 2)) & (@right = silence(3)))
   end
   
   it_should_behave_like "all arrangements"
@@ -99,7 +99,7 @@ end
 
 describe Par do
   before(:all) do
-    @object = ((@top = note(60,2,127)) | (@bottom = silence(3)))
+    @object = ((@top = note(60, 2)) | (@bottom = silence(3)))
   end
   
   it_should_behave_like "all arrangements"
@@ -134,7 +134,7 @@ end
 describe Group do
   before(:all) do
     @object = group(
-    @music  =   note(60, 2, 100) & note(60, 2, 100, :accented => nil),
+    @music  =   note(60, 2) & note(60, 2, :accented => nil),
     @attrs  =   { :slur => true, :accented => true })
   end
   
@@ -266,7 +266,7 @@ end
 
 describe "Seq of reference duration" do
   before(:all) do
-    @object = (@left = silence(RD/2) & @right = note(60, RD/2, 100))
+    @object = (@left = silence(RD/2) & @right = note(60, RD/2))
   end
   
   it_should_behave_like "all arrangements of reference duration"
@@ -275,7 +275,7 @@ end
 describe "Par of reference duration" do
   before(:all) do
     hn = RD/4
-    @object = ((@left = note(64, hn, 100) & note(64, hn, 100)) | (@right = note(60, RD, 100)))
+    @object = ((@left = note(64, hn) & note(64, hn)) | (@right = note(60, RD)))
   end
   
   it_should_behave_like "all arrangements of reference duration"
@@ -284,7 +284,7 @@ end
 describe "Group of reference duration" do
   before(:all) do
     hn = RD/4
-    @object = group( note(64, hn, 100) & note(64, hn, 100) | note(60, RD, 100), {} )
+    @object = group( note(64, hn) & note(64, hn) | note(60, RD), {} )
   end
   
   it_should_behave_like "all arrangements of reference duration"
@@ -292,7 +292,7 @@ end
 
 describe "Item of reference duration" do
   before(:all) do
-    @object = note(60, RD, 100)
+    @object = note(60, RD)
   end
   
   it_should_behave_like "all arrangements of reference duration"
@@ -308,14 +308,13 @@ end
 
 describe "helper functions" do
   it "should arrange notes" do
-    note(60).should      == Item.new( Note.new(60,1,100) )
-    note(60,2).should    == Item.new( Note.new(60,2,100) )
-    note(60,3,80).should == Item.new( Note.new(60,3,80) )
+    note(60).should    == Item.new(Note.new(60, 1))
+    note(60, 2).should == Item.new(Note.new(60, 2))
   end
   
   it "should arrange silence" do
-    rest().should  == Item.new( Silence.new(1) )
-    rest(2).should == Item.new( Silence.new(2) )
+    rest().should  == Item.new(Silence.new(1))
+    rest(2).should == Item.new(Silence.new(2))
   end
   
   it "should arrange groups" do
