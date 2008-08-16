@@ -24,7 +24,7 @@ module Music
       def transpose(interval) self end
       
       def perform(performer, c)
-        [ performer.perform_silence(self, c), c.advance(duration) ]
+        performer.perform_silence(self, c)
       end
       
       def take(d)
@@ -67,7 +67,11 @@ module Music
       end
       
       def perform(performer, c)
-        [ performer.perform_note(self, c), c.advance(duration) ]
+        performer.perform_note(self, c)
+      end
+      
+      def inherit(attrs)
+        Note.new(@pitch, @duration, attrs.merge(@attributes))
       end
       
       def take(d)

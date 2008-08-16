@@ -47,8 +47,14 @@ module Music
       
       # Sequentially compose a sequence with itself n times.
       def repeat(n)
-        raise TypeError, "Expected Integer, got #{n.class}." unless Integer === n
-        raise ArgumentError, "Expected non-negative Integer, got #{n}." unless n >= 0
+        unless n.kind_of?(Integer)
+          raise TypeError, "Expected Integer, got #{n.class}."
+        end
+        
+        unless n >= 0
+          raise ArgumentError, "Expected non-negative Integer, got #{n}."
+        end
+        
         if n.zero? then none
         else        
           (1..(n-1)).inject(self) { |mus,rep| mus & self }
@@ -118,10 +124,11 @@ module Music
         self.class.new(left.map(&block), right.map(&block))
       end
       
-      def perform(performer, c0)
-        p1, c1 = left.perform(performer, c0)
-        p2, c2 = right.perform(performer, c1)
-        [ p1 + p2, Context.new(c2.time, c0.attributes) ]
+      def perform(performer, context)
+        l = left.perform(performer, context)
+        c = context.advance(left.duration)
+        r = right.perform(performer, context)
+        performer.perform_seq(l, r, c)
       end
       
       def take(d)
@@ -179,10 +186,11 @@ module Music
         self.class.new(top.map(&block), bottom.map(&block))
       end
       
-      def perform(performer, c0)
-        p1, c1 = top.perform(performer, c0)
-        p2, c2 = bottom.perform(performer, c0)
-        [ p1.merge(p2), Context.new([c1.time, c2.time].max, c0.attributes) ]
+      def perform(performer, context)
+        t = performer.perform(top, context)
+        b = performer.perform(bottom, context)
+        c = context.advance([top.duration, bottom.duration].max)
+        performer.perform_par(t, b, c)
       end
       
       def take(d)
@@ -231,8 +239,7 @@ module Music
       end
       
       def perform(performer, context)
-        music.perform(performer,
-                  Context.new(context.time, attributes.merge(context.attributes)))
+        music.perform(performer, context.push(:attributes => attributes))
       end
     end
     

@@ -129,18 +129,17 @@ representation is polymorphic.
     include Enumerable
     
     attr_reader :events
-    def_delegators :@events, :each, :[]
-    
+    def_delegators :@events, :each, :[]    
     def self.[](*events) new(events.flatten) end
     
     def initialize(events) @events = events end
     
     def merge(other)
-      Timeline[ (events + other.events).sort ]
+      self.class.new((events + other.events).sort)
     end
     
     def +(other)
-      Timeline[ (events + other.events) ]
+      self.class.new(events + other.events)
     end
     
     def ==(other)
@@ -160,22 +159,38 @@ representation is polymorphic.
     def advance(dur)
       self.class.new(time + dur, attributes)
     end
+    
+    def push(values)
+      t = values[:time] || 0
+      a = values[:attributes] || values[:attrs] || {}
+      self.class.new(t, a)
+    end
   end
   
   class Performer
-    def self.perform(score) new.perform(score) end
+    def self.perform(score)
+      new.perform(score)
+    end
     
-    def perform(score)
-      score.perform(self, Context.default).first
+    def perform(score, context = Context.default)
+      score.perform(self, context)
+    end
+    
+    def perform_seq(left, right, context)
+      left + right
+    end
+    
+    def perform_par(top, bottom, context)
+      top.merge(bottom)
     end
     
     def perform_note(note, context)
-      Timeline[
-        Event.new(context.time,
-                  Note.new(note.pitch, note.duration,
-                           context.attributes.merge(note.attributes))) ]
+      Timeline.new([
+        Event.new(context.time, note.inherit(context.attributes))])
     end
     
-    def perform_silence(silence, context) Timeline[] end
+    def perform_silence(silence, context)
+      Timeline.new([])
+    end
   end
 end

@@ -52,7 +52,7 @@ shared_examples_for "all arrangements" do
     end
     
     it "is equivalent when reversed twice" do
-      Performer.perform(@object.reverse.reverse).should == Performer.perform(@object)
+      @object.reverse.reverse.should === @object
     end
   end
 end
