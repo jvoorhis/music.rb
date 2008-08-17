@@ -6,25 +6,29 @@ module Music
   class SMFWriter
     include SMF
     
-    def initialize(options={})
+    def initialize(options = {})
       @time = MidiTime.new(options.fetch(:resolution, 480))
       @seq  = Sequence.new(1, @time.resolution)
     end
     
-    def track(performance, options={})
-      @track = Track.new
-      seq_name = options.fetch(:name, gen_seq_name)
-      @track << SequenceName.new(0, seq_name)
+    def track(performance, options = {})
+      @track   = Track.new
       @channel = options.fetch(:channel, 1)
+      seq_name = SequenceName.new(0, options.fetch(:name, gen_seq_name))
       
+      @track << seq_name
+
       performance.each do |event|
-        attack  = @time.ppqn(event.time)
-        release = attack + @time.ppqn(event.object.duration)
-        @track << NoteOn.new(attack, @channel, Music.MidiPitch(event.object.pitch), event.object.velocity)
-        @track << NoteOff.new(release, @channel, Music.MidiPitch(event.object.pitch), event.object.velocity)
+        attack   = @time.ppqn(event.time)
+        release  = attack + @time.ppqn(event.object.duration)
+        pitch    = Music.MidiPitch(event.object.pitch)
+        velocity = event.object.attributes[:velocity]
+        @track  <<  NoteOn.new(attack, @channel, pitch, velocity)
+        @track  << NoteOff.new(release, @channel, pitch, velocity)
       end
       
       @seq << @track
+      
       self
     end
     

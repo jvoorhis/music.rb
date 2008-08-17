@@ -1,13 +1,9 @@
 TODO:
-* MusicObject
-  * Attributes
-    * Move dynamics to attributes
-  * Group
-  * Atom
+* Types
+  * Attribute functions: context -> value
+  * Remove Item?
 * Performance
   * Observe attributes
-* QuickSpec
 * Generator
-  * QuickSpec independence
   * Probability
   * Markov

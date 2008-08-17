@@ -2,16 +2,6 @@ require 'rational'
 
 ID = lambda { |x| x }
 
-module Kernel
-  def alike?(*objs)
-    if objs.empty? then true
-    else
-      k = objs.first.class
-      objs.all? { |obj| k === obj }
-    end
-  end
-end
-
 class Object
   def returning(s,&k) k[s]; s end
 end
@@ -34,14 +24,12 @@ class Symbol
   end
 end
 
-class Class
-  def ctor; method(:new) end
-end
-
 module Math
+  LOG2 = Math.log(2)
+  
   module_function
   def log2(x)
-    Math.log(x) / Math.log(2)
+    Math.log(x) / LOG2
   end
 end  
 
@@ -57,6 +45,6 @@ class Numeric
   alias clip_hi clip_high
   
   def clip(range)
-    clip_low(range.begin).clip_high(range.end)
+    clip_low(range.first).clip_high(range.last)
   end
 end

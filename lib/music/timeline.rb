@@ -51,8 +51,7 @@ module Music
     end
     
     def perform_note(note, context)
-      Timeline.new([
-        Event.new(context.time, note.inherit(context.attributes))])
+      Timeline.new([Event.new(context.time, note)])
     end
     
     def perform_silence(silence, context)

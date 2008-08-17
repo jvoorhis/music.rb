@@ -38,8 +38,8 @@ module Music
       end
       alias | par
       
-      # Parallel composition. The duration of the longer sequence is truncated to
-      # match the duration of the shorter.
+      # Parallel composition. The duration of the longer sequence is truncated
+      # to match the duration of the shorter one.
       def /(other)
         d = [duration, other.duration].min
         take(d) | other.take(d)
@@ -68,10 +68,10 @@ module Music
       end
       
       # Slice a sequence of MusicObjects by time. With a scalar, positive time
-      # value, it behaves as @music.take(time)@. With a negative, scalar time, it
-      # acts as @music.drop(music.duration-time)@. When given a range, it returns
-      # the points in time between the first and second endpoints. The value of
-      # the first endpoint must be greater than the second.
+      # value, it behaves as @music.take(time)@. With a negative, scalar time,
+      # it acts as @music.drop(music.duration-time)@. When given a range, it
+      # returns the points in time between the first and second endpoints. The
+      # value of the first endpoint must be greater than the second.
       def slice(dur)
         num2idx = proc do |n|
           n < 0 ? n + duration : n
@@ -91,7 +91,8 @@ module Music
       def transpose(hs)
         map do |music|
           case music
-            when Note: Note.new(music.pitch+hs, music.duration, music.attributes)
+            when Note
+              Note.new(music.pitch+hs, music.duration, music.attributes)
             else music
           end
         end
@@ -100,7 +101,7 @@ module Music
       # Test for equivalence. Two MusicObject sequences are _equivalent_ if they
       # produce idential Timelines when interpreted.
       def ===(mus)
-        Performer.perform(self) == Performer.perform(mus)
+        TimelinePerformer.perform(self) == TimelinePerformer.perform(mus)
       end
     end
     
@@ -124,11 +125,11 @@ module Music
         self.class.new(left.map(&block), right.map(&block))
       end
       
-      def perform(performer, context)
-        l = left.perform(performer, context)
-        c = context.advance(left.duration)
-        r = right.perform(performer, context)
-        performer.perform_seq(l, r, c)
+      def perform(performer, c0)
+        l  = left.perform(performer, c0)
+        c1 = c0.advance(left.duration)
+        r  = right.perform(performer, c1)
+        performer.perform_seq(l, r, c0)
       end
       
       def take(d)
@@ -186,11 +187,10 @@ module Music
         self.class.new(top.map(&block), bottom.map(&block))
       end
       
-      def perform(performer, context)
-        t = performer.perform(top, context)
-        b = performer.perform(bottom, context)
-        c = context.advance([top.duration, bottom.duration].max)
-        performer.perform_par(t, b, c)
+      def perform(performer, c0)
+        t  = performer.perform(top, c0)
+        b  = performer.perform(bottom, c0)
+        performer.perform_par(t, b, c0)
       end
       
       def take(d)
@@ -238,8 +238,10 @@ module Music
         self.class.new(music.reverse, attributes)
       end
       
-      def perform(performer, context)
-        music.perform(performer, context.push(:attributes => attributes))
+      def perform(performer, c0)
+        c1 = c0.push(attributes)
+        m  = music.perform(performer, c1)
+        performer.perform_group(m, c0)
       end
     end
     
@@ -263,14 +265,14 @@ module Music
       def take(d)
         if d <= 0 then none
         else
-          self.class.new( item.take(d) )
+          self.class.new(item.take(d))
         end
       end
       
       def drop(d)
         if d >= duration then none
         else
-          self.class.new( item.drop(d) )
+          self.class.new(item.drop(d))
         end
       end
       
@@ -281,12 +283,12 @@ module Music
     
     # Arrange a note.
     def note(pit, dur = 1, attrs = {})
-      Item.new( Note.new(pit, dur, attrs) )
+      Item.new(Note.new(pit, dur, attrs))
     end
     
     # Arrange silence.
     def silence(dur = 1, attrs = {})
-      Item.new( Silence.new(dur, attrs) )
+      Item.new(Silence.new(dur, attrs))
     end
     alias rest silence
     
@@ -300,13 +302,13 @@ module Music
     def none; silence(0) end
     
     # Compose a list of arrangements sequentially.
-    def line(*objs)
-      objs.inject { |a, b| a & b }
+    def line(*ms)
+      ms.inject { |a, b| a & b }
     end
     
     # Compose a list of arrangements in parallel.
-    def chord(*objs)
-      objs.inject { |a, b| a | b }
+    def chord(*ms)
+      ms.inject { |a, b| a | b }
     end
   end
 end

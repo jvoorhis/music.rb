@@ -19,6 +19,8 @@ require 'forwardable'
 require 'music/objects'
 require 'music/duration'
 require 'music/arrangement'
+require 'music/performer'
+require 'music/timeline'
 require 'music/smf_writer'
 
 module Music
@@ -104,93 +106,5 @@ representation is polymorphic.
       new(:a, 9), new(:as, 10),
       new(:b, 11)
     ] unless defined?(PITCH_CLASSES)
-  end
-  
-  class Event
-    include Comparable
-    
-    attr_reader :time, :object
-    
-    def initialize(time, obj)
-      @time, @object = time, obj
-    end
-    
-    def ==(other)
-      [time, object] == [other.time, other.object]
-    end
-    
-    def <=>(other)
-      time <=> other.time
-    end
-  end
-  
-  class Timeline
-    extend Forwardable
-    include Enumerable
-    
-    attr_reader :events
-    def_delegators :@events, :each, :[]    
-    def self.[](*events) new(events.flatten) end
-    
-    def initialize(events) @events = events end
-    
-    def merge(other)
-      self.class.new((events + other.events).sort)
-    end
-    
-    def +(other)
-      self.class.new(events + other.events)
-    end
-    
-    def ==(other)
-      events == other.events
-    end
-  end
-  
-  class Context
-    attr_reader :time, :attributes
-    
-    def self.default; new(0, {}) end
-    
-    def initialize(tim, attrs)
-      @time, @attributes = tim, attrs
-    end
-    
-    def advance(dur)
-      self.class.new(time + dur, attributes)
-    end
-    
-    def push(values)
-      t = values[:time] || 0
-      a = values[:attributes] || values[:attrs] || {}
-      self.class.new(t, a)
-    end
-  end
-  
-  class Performer
-    def self.perform(score)
-      new.perform(score)
-    end
-    
-    def perform(score, context = Context.default)
-      score.perform(self, context)
-    end
-    
-    def perform_seq(left, right, context)
-      left + right
-    end
-    
-    def perform_par(top, bottom, context)
-      top.merge(bottom)
-    end
-    
-    def perform_note(note, context)
-      Timeline.new([
-        Event.new(context.time, note.inherit(context.attributes))])
-    end
-    
-    def perform_silence(silence, context)
-      Timeline.new([])
-    end
   end
 end

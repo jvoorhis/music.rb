@@ -37,8 +37,7 @@ module Music
       def drop(d)
         if d >= duration then none
         else
-          clipped = d > 0 ? d : 0
-          self.class.new([duration-d.clip_lo(0), 0].max)
+          self.class.new(duration - d.clip(0..duration))
         end
       end
     end
@@ -67,11 +66,12 @@ module Music
       end
       
       def perform(performer, c)
-        performer.perform_note(self, c)
+        n1 = inherit(c.attributes)
+        performer.perform_note(n1, c)
       end
       
       def inherit(attrs)
-        Note.new(@pitch, @duration, attrs.merge(@attributes))
+        Note.new(pitch, duration, attrs.merge(attributes))
       end
       
       def take(d)
@@ -84,7 +84,7 @@ module Music
       def drop(d)
         if d >= duration then none
         else
-          self.class.new(pitch, [duration-d.clip_lo(0), 0].max, attributes)
+          self.class.new(pitch, duration - d.clip(0..duration), attributes)
         end
       end
     end

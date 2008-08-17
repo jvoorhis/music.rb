@@ -2,12 +2,16 @@ module Music
   module Performer
     
     class Base
-      def self.perform(score)
-        new.perform(score)
+      def self.perform(music)
+        new.perform(music)
       end
       
-      def perform(score, context = Context.default)
-        score.perform(self, context)
+      def perform(music, context = Context.default)
+        music.perform(self, context)
+      end
+      
+      def perform_group(music, context)
+        music
       end
     end
     
@@ -24,10 +28,9 @@ module Music
         self.class.new(time + dur, attributes)
       end
       
-      def push(values)
-        t = values[:time] || 0
-        a = values[:attributes] || values[:attrs] || {}
-        self.class.new(t, a)
+      def push(a0)
+        a1 = @attributes.merge(a0)
+        self.class.new(time, a1)
       end
     end
   end
