@@ -1,4 +1,6 @@
 require 'music/pretty_printer'
+require 'music/timeline'
+
 module Music
   module Objects
     
@@ -13,6 +15,10 @@ module Music
       
       def inspect
         PrettyPrinter.perform(self)
+      end
+      
+      def to_timeline
+        TimelinePerformer.perform(self)
       end
     end
     

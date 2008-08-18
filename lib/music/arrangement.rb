@@ -16,6 +16,7 @@
 
 require 'forwardable'
 require 'music/pretty_printer'
+require 'music/timeline'
 
 module Music
   module Arrangement
@@ -100,11 +101,15 @@ module Music
       # Test for equivalence. Two MusicObject sequences are _equivalent_ if they
       # produce idential Timelines when interpreted.
       def ===(mus)
-        TimelinePerformer.perform(self) == TimelinePerformer.perform(mus)
+        self.to_timeline == mus.to_timeline
       end
       
       def inspect
         PrettyPrinter.perform(self)
+      end
+      
+      def to_timeline
+        TimelinePerformer.perform(self)
       end
     end
     
@@ -285,35 +290,5 @@ module Music
     end
     
     module_function
-    
-    # Arrange a note.
-    def note(pit, dur = 1, attrs = {})
-      Item.new(Note.new(pit, dur, attrs))
-    end
-    
-    # Arrange silence.
-    def silence(dur = 1, attrs = {})
-      Item.new(Silence.new(dur, attrs))
-    end
-    alias rest silence
-    
-    # Arrange a group.
-    def group(mus, attrs)
-      Group.new(mus, attrs)
-    end
-    
-    # A blank arrangement of zero length. This is the identity for parallel
-    # and serial composition.
-    def none; silence(0) end
-    
-    # Compose a list of arrangements sequentially.
-    def line(*ms)
-      ms.inject { |a, b| a & b }
-    end
-    
-    # Compose a list of arrangements in parallel.
-    def chord(*ms)
-      ms.inject { |a, b| a | b }
-    end
   end
 end

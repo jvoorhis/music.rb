@@ -16,8 +16,9 @@
 
 require 'prelude'
 require 'forwardable'
-require 'music/objects'
 require 'music/duration'
+require 'music/pitch'
+require 'music/objects'
 require 'music/arrangement'
 require 'music/performer'
 require 'music/timeline'
@@ -72,39 +73,54 @@ representation is polymorphic.
     end
   end
   
-  class Pitch
-    attr_reader :pitch_class, :octave
-    def initialize(pc, oct)
-      @pitch_class, @octave = pc, oct
-    end
+=begin
+
+Music constructors.
+
+A piece of music may be constructed by calling note(), silence(), rest() and
+group(). It is recommended that you use these methods rather than instantiating
+the items directly, e.g. via Music::Objects::Note.new. These functions are both
+more convenient, and decouple your composition from the underlying
+representation, which is subject to change.
+
+=end
+  
+  # Arrange a note.
+  def note(pit, dur = 1, attrs = {})
+    Item.new(Note.new(pit, dur, attrs))
   end
   
-  class PitchClass
-    include Comparable
-    
-    def self.for(pitch)
-      PITCH_CLASSES.detect { |pc| pc.ord == pitch % 12 }
-    end
-    
-    attr_reader :name, :ord
-    
-    def initialize(name, ord)
-      @name, @ord = name, ord
-    end
-    
-    def <=>(pc) ord <=> pc.ord end
-    
-    def to_s; name.to_s end
-    
-    # Western pitch classes.
-    PITCH_CLASSES = [
-      new(:c, 0), new(:cs, 1),
-      new(:d, 2), new(:ds, 3),
-      new(:e, 4),
-      new(:f, 5), new(:fs, 6),
-      new(:g, 7), new(:gs, 8),
-      new(:a, 9), new(:as, 10),
-      new(:b, 11)
-    ] unless defined?(PITCH_CLASSES)
+  # Arrange silence.
+  def silence(dur = 1, attrs = {})
+    Item.new(Silence.new(dur, attrs))
+  end
+  alias rest silence
+  
+  # Arrange a group.
+  def group(mus, attrs)
+    Group.new(mus, attrs)
+  end
+  
+  # A blank arrangement of zero length. This is the identity for parallel
+  # and serial composition.
+  def none; silence(0) end
+  
+=begin
+
+Music combinators.
+
+line() and chord() both accept Enumerable lists of Arrangements, and combine
+them into a new Arrangement.
+
+=end
+  
+  # Compose a list of arrangements sequentially.
+  def line(*ms)
+    ms.inject { |a, b| a & b }
+  end
+  
+  # Compose a list of arrangements in parallel.
+  def chord(*ms)
+    ms.inject { |a, b| a | b }
   end
 end
