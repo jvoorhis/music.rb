@@ -15,13 +15,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'forwardable'
+require 'music/pretty_printer'
 
 module Music
   module Arrangement
     
     class Base
-      extend Forwardable
-      
       # Return the empty MusicObject.
       def self.none; silence(0) end
       def none; self.class.none end
@@ -102,6 +101,10 @@ module Music
       # produce idential Timelines when interpreted.
       def ===(mus)
         TimelinePerformer.perform(self) == TimelinePerformer.perform(mus)
+      end
+      
+      def inspect
+        PrettyPrinter.perform(self)
       end
     end
     
@@ -247,6 +250,8 @@ module Music
     
     class Item < Base
       attr_reader :item
+      
+      extend Forwardable
       def_delegators :@item, :duration, :perform
       
       def initialize(item)

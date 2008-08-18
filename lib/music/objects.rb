@@ -1,9 +1,19 @@
+require 'music/pretty_printer'
 module Music
   module Objects
     
     class Base
-      def self.none; Silence.new(0) end
-      def none; self.class.none end
+      def self.none
+        Silence.new(0)
+      end
+      
+      def none
+        self.class.none
+      end
+      
+      def inspect
+        PrettyPrinter.perform(self)
+      end
     end
     
     # Remain silent for the duration.
