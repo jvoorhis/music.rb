@@ -2,7 +2,6 @@ require 'smf'
 require 'music/midi_time'
 
 module Music
-  # Standard Midi File performance.
   class SMFWriter
     include SMF
     
@@ -11,19 +10,20 @@ module Music
       @seq  = Sequence.new(1, @time.resolution)
     end
     
-    def track(performance, options = {})
+    def track(timeline, options = {})
       @track   = Track.new
       @channel = options.fetch(:channel, 1)
       seq_name = SequenceName.new(0, options.fetch(:name, gen_seq_name))
       
       @track << seq_name
-
-      performance.each do |event|
-        attack   = @time.ppqn(event.time)
-        release  = attack + @time.ppqn(event.object.duration)
-        pitch    = Music.MidiPitch(event.object.pitch)
-        velocity = event.object.attributes[:velocity]
-        @track  <<  NoteOn.new(attack, @channel, pitch, velocity)
+      
+      timeline.each_with_time do |note, time|
+        attack   = @time.ppqn(time)
+        release  = attack + @time.ppqn(note.duration)
+        pitch    = Music.MidiPitch(note.pitch)
+        velocity = note.attributes.fetch(:velocity, 40)
+        
+        @track  << NoteOn.new(attack, @channel, pitch, velocity)
         @track  << NoteOff.new(release, @channel, pitch, velocity)
       end
       
