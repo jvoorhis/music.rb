@@ -39,6 +39,14 @@ module Music
     def ==(other)
       events == other.events
     end
+    
+    def each_with_time
+      events.each do |e|
+        yield e.object, e.time
+      end
+    end
+    
+    def to_timeline; self end
   end
   
   class TimelinePerformer < Performer::Base
