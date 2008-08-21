@@ -74,4 +74,4 @@ score = (rh | lh)
 
 SMFWriter.new(:tempo => 80).
   track(score, :name => 'Op. 20, No. 2').
-  save('/Users/jvoorhis/chopin')
+  save('chopin-op28-no20')
