@@ -104,12 +104,16 @@ module Music
         self.to_timeline == mus.to_timeline
       end
       
-      def inspect
-        PrettyPrinter.perform(self)
-      end
-      
       def to_timeline
         TimelinePerformer.perform(self)
+      end
+      
+      def method_missing(sym, *args, &block)
+        map { |a| a.send(sym, *args, &block) }
+      end
+      
+      def inspect
+        PrettyPrinter.perform(self)
       end
     end
     
@@ -288,7 +292,5 @@ module Music
       
       def reverse; self end
     end
-    
-    module_function
   end
 end
