@@ -23,7 +23,7 @@ module Music
     include Enumerable
     
     attr_reader :events
-    def_delegators :@events, :each, :[]    
+    def_delegators :@events, :[]
     def self.[](*events) new(events.flatten) end
     
     def initialize(events) @events = events end
@@ -38,6 +38,12 @@ module Music
     
     def ==(other)
       events == other.events
+    end
+    
+    def each
+      events.each do |e|
+        yield e.object
+      end
     end
     
     def each_with_time
