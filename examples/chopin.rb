@@ -4,6 +4,7 @@
 
 require 'music'
 require 'music/abs_pitch'
+
 include Music
 include AbsPitch
 
@@ -15,6 +16,7 @@ def chord(*ps)
 end
 alias ch chord
 
+def score
 # mm 1
 rh = ch(G2, C3, EF3, G3) & ch(AF2, C3, EF3, AF3) & (ch(G2, B2) | ch(EF3, G3, :dur => DEN) & ch(D3, F3, :dur => SN)) & ch(EF2, G2, C3, EF3)
 lh = ch(C1, C2) & ch(F0, F1) & ch(G0, G1) & ch(C1, G1, C2)
@@ -67,10 +69,11 @@ lh &= ch(AF0, AF1) & ch(DF0, DF1) & ch(G0, G1) & ch(C0, C1)
 rh &= ch(C3, EF3, G3, C4, :dur => 4)
 lh &= ch(C2, G2, :dur => 4)
 
-score = (rh | lh)
+score = rh | lh
 # Not all applications agree on where to begin numbering pitches. Uncomment the
 # following line if it is heard an octave too low.
 # score = (rh | lh).transpose(12)
+end
 
 SMFWriter.new(:tempo => 80).
   track(score, :name => 'Op. 20, No. 2').
