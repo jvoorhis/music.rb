@@ -91,7 +91,7 @@ describe Seq do
     @object.transpose(5).should == @left.transpose(5) & @right.transpose(5)
   end
   
-  it "maps its contents, but retains its structure" do
+  it "can be mapped" do
     @object.map { |n| n.transpose(7) }.should ==
         @object.left.transpose(7) & @object.right.transpose(7)
   end
@@ -125,7 +125,7 @@ describe Par do
     @object.transpose(5).should == @top.transpose(5) | @bottom.transpose(5)
   end
   
-  it "maps its contents, but retains its structure" do
+  it "can be mapped" do
     @object.map { |n| n.transpose(7) }.should ==
         @object.top.transpose(7) | @object.bottom.transpose(7)
   end
@@ -172,7 +172,7 @@ describe Group do
     timeline[1].object.attributes[:accented].should be_nil
   end
   
-  it "maps its contents, but retains its structure" do
+  it "can be mapped" do
     @object.map { |n| n.transpose(7) }.should ==
         group( @object.music.transpose(7), @object.attributes )
   end
@@ -187,7 +187,7 @@ describe Item do
     @object.reverse.should == @object
   end
   
-  it "maps its contents, but retains its structure" do
+  it "can be mapped" do
     @object.map { |n| n.transpose(7) }.should == note(67)
   end
 end
@@ -197,70 +197,9 @@ end
 RD = 4      # reference duration
 MD = RD / 2 # midpoint
 shared_examples_for "all arrangements of reference duration" do
-  
-  describe "can be taken from" do
-    it "by a shorter duration" do
-      @object.take(MD).duration.should == MD
-    end
-    
-    it "by zero" do
-      @object.take(0).duration.should be_zero
-    end
-    
-    it "by a longer duration" do
-      @object.take(RD*2).duration.should == RD
-    end
-    
-    it "by a negative duration" do
-      @object.take(-1).duration.should be_zero
-    end
-  end
-  
-  describe "can be dropped from" do
-    it "by a shorter duration" do
-      @object.drop(MD).duration.should == MD
-    end
-    
-    it "by zero" do
-      @object.drop(0).duration.should == RD
-    end
-    
-    it "by a longer duration" do
-      @object.drop(RD*2).duration.should be_zero
-    end
-    
-    it "by a negative duration" do
-      @object.drop(-1).duration.should == RD
-    end
-  end
-  
-  describe "can be sliced" do
-    it "by range" do
-      @object.slice(0..MD).duration.should == MD
-    end
-    
-    it "by endpoint" do
-      @object.slice(MD).duration.should == MD
-    end
-    
-    it "with negative endpoint" do
-      qn = RD/4
-      @object.slice(qn..-qn).duration.should == MD
-    end
-    
-    it "with negative start and endpoints" do
-      qn    = RD/4
-      range = -(qn*2)-1..-qn
-       (-3..-1).should == range # example
-      @object.slice(range).duration.should == MD
-    end
-  end
-  
-  describe "in truncating parallel composition" do
-    it "will have a duration equal to the shortest tree" do
-      (@object / rest(RD*2)).duration.should == RD
-      (@object / rest(RD/2)).duration.should == RD/2
-    end
+  it "will have a duration equal to the shortest tree under truncating parallel composition" do
+    (@object / rest(RD*2)).duration.should == RD
+    (@object / rest(RD/2)).duration.should == RD/2
   end
 end
 

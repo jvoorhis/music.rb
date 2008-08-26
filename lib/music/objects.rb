@@ -1,9 +1,12 @@
 require 'music/attributes'
+require 'music/temporal'
 require 'music/pretty_printer'
 require 'music/timeline'
 
 module Music
   module Objects
+    include Attributes
+    include Temporal
     
     class Base
       def self.none
@@ -25,7 +28,6 @@ module Music
     
     # Remain silent for the duration.
     class Silence < Base
-      include Attributes
       attr_reader :duration, :attributes
       
       def initialize(duration, attributes = {})
@@ -69,7 +71,6 @@ module Music
     
     # A note has a steady pitch and a duration.
     class Note < Base
-      include Attributes
       attr_reader :pitch, :duration, :attributes
       
       def initialize(pitch, duration, attributes = {})

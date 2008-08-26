@@ -15,8 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'forwardable'
-require 'music/pretty_printer'
+require 'music/temporal'
 require 'music/timeline'
+require 'music/pretty_printer'
 
 module Music
   module Arrangement
@@ -66,26 +67,6 @@ module Music
       def delay(dur)
         silence(dur) & self
       end
-      
-      # Slice a sequence of MusicObjects by time. With a scalar, positive time
-      # value, it behaves as @music.take(time)@. With a negative, scalar time,
-      # it acts as @music.drop(music.duration-time)@. When given a range, it
-      # returns the points in time between the first and second endpoints. The
-      # value of the first endpoint must be greater than the second.
-      def slice(dur)
-        num2idx = proc do |n|
-          n < 0 ? n + duration : n
-        end
-        
-        case dur
-          when Numeric
-            slice(0..dur)
-          when Range
-            d1, d2 = num2idx[dur.begin], num2idx[dur.end]
-            take(d2).drop(d1)
-        end
-      end
-      alias [] slice
       
       def transpose(hs)
         map { |a| a.transpose(hs) }
