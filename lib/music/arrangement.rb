@@ -87,15 +87,8 @@ module Music
       end
       alias [] slice
       
-      # Transpose a Note by +hs+ halfsteps.
       def transpose(hs)
-        map do |music|
-          case music
-            when Note
-              Note.new(music.pitch+hs, music.duration, music.attributes)
-            else music
-          end
-        end
+        map { |a| a.transpose(hs) }
       end
       
       # Test for equivalence. Two MusicObject sequences are _equivalent_ if they
@@ -106,10 +99,6 @@ module Music
       
       def to_timeline
         TimelinePerformer.perform(self)
-      end
-      
-      def method_missing(sym, *args, &block)
-        map { |a| a.send(sym, *args, &block) }
       end
       
       def inspect
