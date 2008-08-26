@@ -17,10 +17,14 @@ shared_examples_for "all attributes implementations" do
     o1.arbitrary.should == 42
   end
   
-  it "" do
+  it "allows a block to manipulate its values " do
     o1 = @object.arbitrary(21)
     o2 = o1.arbitrary { |a| a * 2 }
     o2.arbitrary.should == 42
+  end
+  
+  it "delegates to its superclass for unsupported messages" do
+    proc { @object.arbitrary(:a, :b, :c) }.should raise_error(NoMethodError)
   end
 end
 
