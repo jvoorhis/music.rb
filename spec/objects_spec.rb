@@ -9,7 +9,7 @@ describe Silence do
     @object.duration.should == 1
   end
   
-  it "should have attributes" do
+  it "can be constructed with attributes" do
     @object.attributes.should == { :dynamic => :mf }
   end
 end
@@ -27,7 +27,7 @@ describe Note do
     @object.duration.should == 1
   end
   
-  it "should have attributes" do
+  it "can be constructed with attributes" do
     @object.attributes.should == { :dynamic => :mf }
   end
   

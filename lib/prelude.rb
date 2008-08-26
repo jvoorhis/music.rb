@@ -16,6 +16,10 @@ class Array
   def sum
     inject(0) { |a, b| a + b }
   end
+  
+  def one?; size == 1 end
+  
+  def many?; size > 1 end
 end
 
 class Symbol

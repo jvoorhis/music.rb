@@ -1,3 +1,4 @@
+require 'music/attributes'
 require 'music/pretty_printer'
 require 'music/timeline'
 
@@ -24,6 +25,7 @@ module Music
     
     # Remain silent for the duration.
     class Silence < Base
+      include Attributes
       attr_reader :duration, :attributes
       
       def initialize(duration, attributes = {})
@@ -56,11 +58,18 @@ module Music
           self.class.new(duration - d.clip(0..duration))
         end
       end
+      
+      def read_attribute(name) attributes[name] end
+      
+      def update_attribute(name, val)
+        self.class.new(duration, attributes.merge(name => val))
+      end
     end
     Rest = Silence unless defined?(Rest) # Type alias for convenience
     
     # A note has a steady pitch and a duration.
     class Note < Base
+      include Attributes
       attr_reader :pitch, :duration, :attributes
       
       def initialize(pitch, duration, attributes = {})
@@ -102,6 +111,12 @@ module Music
         else
           self.class.new(pitch, duration - d.clip(0..duration), attributes)
         end
+      end
+      
+      def read_attribute(name) attributes[name] end
+      
+      def update_attribute(name, val)
+        self.class.new(pitch, duration, attributes.merge(name => val))
       end
     end
   end
