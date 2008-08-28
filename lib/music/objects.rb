@@ -47,18 +47,18 @@ module Music
       def take(time)
         if time <= 0 then none
         else
-          update_attribute(:duration, [time, duration].min)
+          update(:duration, [time, duration].min)
         end
       end
       
       def drop(time)
         if time >= duration then none
         else
-          update_attribute(:duration, (duration - time).clip(0..duration))
+          update(:duration, (duration - time).clip(0..duration))
         end
       end
       
-      def read_attribute(name)
+      def read(name)
         if @attributes.key?(name)
           @attributes[name]
         else
@@ -66,7 +66,7 @@ module Music
         end
       end
       
-      def update_attribute(name, val)
+      def update(name, val)
         a = @attributes.merge(name => val)
         d = a[:duration]
         self.class.new(d, a)
@@ -91,7 +91,7 @@ module Music
       end
       
       def transpose(interval)
-        update_attribute(:pitch, pitch + interval)
+        update(:pitch, pitch + interval)
       end
       
       def perform(performer, c)
@@ -108,18 +108,18 @@ module Music
       def take(time)
         if time <= 0 then none
         else
-          update_attribute(:duration, [time, duration].min)
+          update(:duration, [time, duration].min)
         end
       end
       
       def drop(time)
         if time >= duration then none
         else
-          update_attribute(:duration, (duration - time).clip(0 .. duration))
+          update(:duration, (duration - time).clip(0 .. duration))
         end
       end
       
-      def read_attribute(name)
+      def read(name)
         if @attributes.key?(name)
           @attributes[name]
         else
@@ -127,7 +127,7 @@ module Music
         end
       end
       
-      def update_attribute(name, val)
+      def update(name, val)
         a = @attributes.merge(name => val)
         p, d = a.values_at(:pitch, :duration)
         self.class.new(p, d, a)

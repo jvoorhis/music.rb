@@ -2,23 +2,24 @@ require File.join( File.dirname(__FILE__), 'spec_helper')
 
 shared_examples_for "all attributes implementations" do
   it "can update its attributes" do
-    o1 = @object.update_attribute(:arbitrary, 42)
+    o1 = @object.update(:arbitrary, 42)
     o1.class.should == @object.class
     o1.attributes[:arbitrary].should == 42
   end
   
   it "has attribute accessors" do
-    o1 = @object.update_attribute(:arbitrary, 42)
-    o1.arbitrary.should == 42
+    o1 = @object.update(:arbitrary, 42)
+    o1.read(:arbitrary).should == 42
+    o1.arbitrary.should == o1.read(:arbitrary)
   end
   
   it "has attribute mutators" do
-    o1 = @object.arbitrary(42)
+    o1 = @object.update(:arbitrary, 42)
     o1.arbitrary.should == 42
   end
   
   it "allows a block to manipulate its values " do
-    o1 = @object.arbitrary(21)
+    o1 = @object.update(:arbitrary, 21)
     o2 = o1.arbitrary { |a| a * 2 }
     o2.arbitrary.should == 42
   end
