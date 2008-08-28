@@ -1,9 +1,14 @@
 module Music  
   class Pitch
+    include Comparable
+    
     attr_reader :pitch_class, :octave
+    
     def initialize(pc, oct)
       @pitch_class, @octave = pc, oct
     end
+    
+    def <=>(p) [oct, pc] <=> [p.oct, p.pc] end
   end
   
   class PitchClass
@@ -33,5 +38,36 @@ module Music
       new(:a, 9), new(:as, 10),
       new(:b, 11)
     ] unless defined?(PITCH_CLASSES)
+  end
+  
+  class Scale
+    def self.[](*degrees) new(degrees) end
+    
+    def initialize(degrees)
+      @degrees = degrees.sort.uniq
+    end
+    
+    def size; @degrees.size end
+    
+    def member?(pitch)
+      @degrees.include?(pitch % 12)
+    end
+    
+    def transpose(pitch, interval)
+      unless member?(pitch)
+        return transpose(pitch - 1, interval) + 1
+      end
+      
+      oct1, pc1 = pitch.divmod(12)
+      i1 = @degrees.index(pc1)
+      wrap, i2 = (i1 + interval).divmod(@degrees.size)
+      pc2 = @degrees[i2]
+      
+      if (((_p = pc2 + (oct1 + wrap) * 12) - pitch) > 0) ^ (interval <= 0)
+        _p
+      else
+        pc2 + ((oct1 + 1) * 12)
+      end
+    end
   end
 end
