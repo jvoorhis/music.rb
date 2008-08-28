@@ -23,6 +23,8 @@ module Music
   module Arrangement
     
     class Base
+      include Temporal
+      
       # Return the empty MusicObject.
       def self.none; silence(0) end
       def none; self.class.none end
