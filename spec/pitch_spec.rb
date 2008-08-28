@@ -33,11 +33,36 @@ describe Scale do
   end
   
   it "should transpose non-member pitches" do
+    @scale.transpose(61, -7).should == 49
+    @scale.transpose(61, -6).should == 51
+    @scale.transpose(61, -5).should == 53
+    @scale.transpose(61, -4).should == 54
+    @scale.transpose(61, -3).should == 56
+    @scale.transpose(61, -2).should == 58
+    @scale.transpose(61, -1).should == 60
+    @scale.transpose(61, 0).should == 61
     @scale.transpose(61, 1).should == 63
     @scale.transpose(61, 2).should == 65
     @scale.transpose(61, 3).should == 66
     @scale.transpose(61, 4).should == 68
     @scale.transpose(61, 5).should == 70
     @scale.transpose(61, 6).should == 72
+    @scale.transpose(61, 7).should == 73
+    
+    @scale.transpose(66, -7).should == 54
+    @scale.transpose(66, -6).should == 56
+    @scale.transpose(66, -5).should == 58
+    @scale.transpose(66, -4).should == 60
+    @scale.transpose(66, -3).should == 61
+    @scale.transpose(66, -2).should == 63
+    @scale.transpose(66, -1).should == 65
+    @scale.transpose(66, 0).should == 66
+    @scale.transpose(66, 1).should == 68
+    @scale.transpose(66, 2).should == 70
+    @scale.transpose(66, 3).should == 72
+    @scale.transpose(66, 4).should == 73
+    @scale.transpose(66, 5).should == 75
+    @scale.transpose(66, 6).should == 77
+    @scale.transpose(66, 7).should == 78
   end
 end
