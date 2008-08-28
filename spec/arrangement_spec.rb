@@ -192,20 +192,17 @@ describe Item do
   end
 end
 
-# Choose an arbitrary reference duration for atomic
-# and aggregate MusicObjectsm for unit testing.
-RD = 4      # reference duration
-MD = RD / 2 # midpoint
 shared_examples_for "all arrangements of reference duration" do
   it "will have a duration equal to the shortest tree under truncating parallel composition" do
-    (@object / rest(RD*2)).duration.should == RD
-    (@object / rest(RD/2)).duration.should == RD/2
+    (@object / rest(@duration * 2)).duration.should == @duration
+    (@object / rest(@duration / 2)).duration.should == @duration / 2
   end
 end
 
 describe "Seq of reference duration" do
   before(:all) do
-    @object = (@left = silence(RD/2) & @right = note(60, RD/2))
+    @duration = 4
+    @object = (@left = silence(2) & @right = note(60, 2))
   end
   
   it_should_behave_like "all arrangements of reference duration"
@@ -213,8 +210,8 @@ end
 
 describe "Par of reference duration" do
   before(:all) do
-    hn = RD/4
-    @object = ((@left = note(64, hn) & note(64, hn)) | (@right = note(60, RD)))
+    @duration = 4
+    @object = ((@left = note(64, 2) & note(64, 2)) | (@right = note(60, 4)))
   end
   
   it_should_behave_like "all arrangements of reference duration"
@@ -222,8 +219,8 @@ end
 
 describe "Group of reference duration" do
   before(:all) do
-    hn = RD/4
-    @object = group( note(64, hn) & note(64, hn) | note(60, RD), {} )
+    @duration = 4
+    @object = group( note(64, 2) & note(64, 2) | note(60, 4), {} )
   end
   
   it_should_behave_like "all arrangements of reference duration"
@@ -231,7 +228,8 @@ end
 
 describe "Item of reference duration" do
   before(:all) do
-    @object = note(60, RD)
+    @duration = 4
+    @object = note(60, 4)
   end
   
   it_should_behave_like "all arrangements of reference duration"
@@ -239,7 +237,8 @@ end
 
 describe "Silence of reference duration" do
   before(:all) do
-    @object = silence(RD)
+    @duration = 4
+    @object = silence(4)
   end
   
   it_should_behave_like "all arrangements of reference duration"

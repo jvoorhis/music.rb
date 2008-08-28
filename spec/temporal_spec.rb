@@ -59,7 +59,7 @@ shared_examples_for "all temporal objects" do
     it "with negative start and endpoints" do
       qn    = RD/4
       range = -(qn*2)-1..-qn
-       (-3..-1).should == range # example
+      (-3..-1).should == range # example
       @object.slice(range).duration.should == MD
     end
   end

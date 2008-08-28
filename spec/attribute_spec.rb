@@ -26,6 +26,13 @@ shared_examples_for "all attributes implementations" do
   it "delegates to its superclass for unsupported messages" do
     proc { @object.arbitrary(:a, :b, :c) }.should raise_error(NoMethodError)
   end
+  
+  it "makes no change when given a block for an undefined attribute" do
+    silence_warnings do
+      @object.arbitrary.should be_nil
+      @object.arbitrary { |a| :arbitrary }.arbitrary.should be_nil
+    end
+  end
 end
 
 describe Silence do

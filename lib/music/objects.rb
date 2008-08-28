@@ -5,17 +5,14 @@ require 'music/timeline'
 
 module Music
   module Objects
-    include Attributes
-    include Temporal
+    
+    # The identity under parallel and sequential composition.
+    def none; Silence.new(0) end
+    module_function :none
     
     class Base
-      def self.none
-        Silence.new(0)
-      end
-      
-      def none
-        self.class.none
-      end
+      include Attributes
+      include Temporal
       
       def inspect
         PrettyPrinter.perform(self)
@@ -28,10 +25,10 @@ module Music
     
     # Remain silent for the duration.
     class Silence < Base
-      attr_reader :duration, :attributes
+      attr_reader :attributes
       
       def initialize(duration, attributes = {})
-        @duration, @attributes = duration, attributes
+        @attributes = attributes.merge(:duration => duration)
       end
       
       def ==(other)
@@ -47,36 +44,42 @@ module Music
         performer.perform_silence(self, c)
       end
       
-      def take(d)
-        if d <= 0 then none
+      def take(time)
+        if time <= 0 then none
         else
-          self.class.new([duration, d].min)
+          update_attribute(:duration, [time, duration].min)
         end
       end
       
-      def drop(d)
-        if d >= duration then none
+      def drop(time)
+        if time >= duration then none
         else
-          self.class.new(duration - d.clip(0..duration))
+          update_attribute(:duration, (duration - time).clip(0..duration))
         end
       end
       
-      def read_attribute(name) attributes[name] end
+      def read_attribute(name)
+        if @attributes.key?(name)
+          @attributes[name]
+        else
+          warn "No attribute #{name} for #{inspect}."
+        end
+      end
       
       def update_attribute(name, val)
-        self.class.new(duration, attributes.merge(name => val))
+        a = @attributes.merge(name => val)
+        d = a[:duration]
+        self.class.new(d, a)
       end
     end
     Rest = Silence unless defined?(Rest) # Type alias for convenience
     
     # A note has a steady pitch and a duration.
     class Note < Base
-      attr_reader :pitch, :duration, :attributes
+      attr_reader :attributes
       
-      def initialize(pitch, duration, attributes = {})
-        @pitch      = pitch
-        @duration   = duration
-        @attributes = attributes
+      def initialize(pitch, duration, attrs = {})
+        @attributes = attrs.merge(:pitch => pitch, :duration => duration)
       end
       
       def ==(other)
@@ -88,7 +91,7 @@ module Music
       end
       
       def transpose(interval)
-        self.class.new(pitch + interval, duration, attributes)
+        update_attribute(:pitch, pitch + interval)
       end
       
       def perform(performer, c)
@@ -97,27 +100,37 @@ module Music
       end
       
       def inherit(attrs)
-        Note.new(pitch, duration, attrs.merge(attributes))
+        a = attrs.merge(@attributes)
+        p, d = a.values_at(:pitch, :duration)
+        self.class.new(p, d, a)
       end
       
-      def take(d)
-        if d <= 0 then none
+      def take(time)
+        if time <= 0 then none
         else
-          self.class.new(pitch, [duration, d].min, attributes)
+          update_attribute(:duration, [time, duration].min)
         end
       end
       
-      def drop(d)
-        if d >= duration then none
+      def drop(time)
+        if time >= duration then none
         else
-          self.class.new(pitch, duration - d.clip(0..duration), attributes)
+          update_attribute(:duration, (duration - time).clip(0 .. duration))
         end
       end
       
-      def read_attribute(name) attributes[name] end
+      def read_attribute(name)
+        if @attributes.key?(name)
+          @attributes[name]
+        else
+          warn "No attribute #{name} for #{inspect}."
+        end
+      end
       
       def update_attribute(name, val)
-        self.class.new(pitch, duration, attributes.merge(name => val))
+        a = @attributes.merge(name => val)
+        p, d = a.values_at(:pitch, :duration)
+        self.class.new(p, d, a)
       end
     end
   end

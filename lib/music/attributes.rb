@@ -1,12 +1,16 @@
 module Music
   module Attributes
-    def method_missing(sym, *args)
+    def method_missing(name, *args)
       if block_given?
-        update_attribute(sym, yield(read_attribute(sym)))
+        if val = read_attribute(name)
+          update_attribute(name, yield(val))
+        else
+          self
+        end
       elsif args.empty? && !block_given?
-        read_attribute(sym)
+        read_attribute(name)
       elsif args.one?
-        update_attribute(sym, args.first)
+        update_attribute(name, args.first)
       else
         super
       end

@@ -2,7 +2,7 @@ require File.join( File.dirname(__FILE__), 'spec_helper')
 
 describe Silence do
   before(:all) do
-    @object = Silence.new(1, :dynamic => :mf)
+    @object = Silence.new(1, :fermata => true)
   end
   
   it "should have a duration" do
@@ -10,7 +10,7 @@ describe Silence do
   end
   
   it "can be constructed with attributes" do
-    @object.attributes.should == { :dynamic => :mf }
+    @object.fermata.should be_true
   end
 end
 
@@ -28,7 +28,7 @@ describe Note do
   end
   
   it "can be constructed with attributes" do
-    @object.attributes.should == { :dynamic => :mf }
+    @object.dynamic.should == :mf
   end
   
   it "can be transposed" do
@@ -36,9 +36,9 @@ describe Note do
   end
   
   it "can be compared" do
-    [ Note.new(60,1,127),
-      Note.new(60,1.0,127),
-      Note.new(60,1.quo(1),127)
+    [ Note.new(60,1),
+      Note.new(60,1.0),
+      Note.new(60,1.quo(1))
     ].each { |val| val.should == @object }
     [ Silence.new(1),
       Arrangement::Base.allocate

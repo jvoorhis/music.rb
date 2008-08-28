@@ -2,6 +2,15 @@ require 'rational'
 
 ID = lambda { |x| x }
 
+module Kernel
+  def silence_warnings
+    old_verbose, $VERBOSE = $VERBOSE, nil
+    yield
+  ensure
+    $VERBOSE = old_verbose
+  end
+end
+
 class Object
   def returning(s,&k) k[s]; s end
 end
