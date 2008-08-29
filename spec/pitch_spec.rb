@@ -1,8 +1,11 @@
 require File.join( File.dirname(__FILE__), 'spec_helper')
-require 'enumerator'
 
 describe Pitch do
-  
+  it "can be created from an integer" do
+    Pitch.from_integer(0).should   == c_1
+    Pitch.from_integer(69).should  == a4
+    Pitch.from_integer(127).should == g9
+  end
 end
 
 describe PitchClass do
@@ -65,7 +68,7 @@ describe Sharp do
       fs => f,
       gs => g,
       as => a,
-      bs => b }.all? { |sharp, nat| sharp == sharp(nat) }.should be_true
+      bs => b }.all? { |sharp, nat| sharp == nat.sharp }.should be_true
   end
   
   it "has a rank" do
@@ -111,7 +114,7 @@ describe Flat do
       ff => f,
       gf => g,
       af => a,
-      bf => b }.all? { |sharp, nat| sharp == flat(nat) }.should be_true
+      bf => b }.all? { |sharp, nat| sharp == nat.flat }.should be_true
   end
   
   it "has a rank" do
@@ -152,8 +155,8 @@ end
 describe "PitchClasses" do
   it "has a canonical ordering" do
     [c,d,e,f,g,a,b].each do |pc|
-      (flat(pc) < pc).should be_true
-      (pc < sharp(pc)).should be_true
+      (pc.flat < pc).should be_true
+      (pc < pc.sharp).should be_true
     end
     
     { cs => df,

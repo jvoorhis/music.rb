@@ -9,7 +9,7 @@ module Music
       @time  = MidiTime.new(options.fetch(:resolution, 480))
       @seq   = Sequence.new(1, @time.resolution)
       @tempo = SetTempo.new(1, bpm_to_qn_per_usec(
-                                   options.fetch(:tempo, 2000000)))
+                                   options.fetch(:tempo, 2_000_000)))
     end
     
     def track(arrangement_or_timeline, options = {})
@@ -24,7 +24,7 @@ module Music
       timeline.each_with_time do |note, time|
         attack   = @time.ppqn(time)
         release  = attack + @time.ppqn(note.duration)
-        pitch    = Music.MidiPitch(note.pitch)
+        pitch    = note.pitch.to_i
         velocity = note.attributes.fetch(:velocity, 80)
         
         track  << NoteOn.new(attack, channel, pitch, velocity)

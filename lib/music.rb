@@ -55,15 +55,6 @@ representation is polymorphic.
     (69 + 12 * (Math.log2(pitch / 440.0))).round
   end
   
-  # Convert any pitch value to midi. 
-  def MidiPitch(pitch)
-    case pitch
-      when Integer then pitch
-      when Float then ftom(pitch)
-      else raise ArgumentError, "Cannot cast #{pitch.class} to midi."
-    end
-  end
-  
   # Convert a midi pitch value to Hertz.
   def Hertz(pitch)
     case pitch

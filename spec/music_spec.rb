@@ -19,15 +19,6 @@ describe Music do
       end
     end
     
-    it "should convert any Integer or Float to a midi pitch" do
-      { 69    => 69,
-        440.0 => 69 }.each do |arg, m|
-        Music.MidiPitch(arg).should == m
-      end
-      
-      proc { Music.MidiPitch(1.quo(1)) }.should raise_error(ArgumentError)
-    end
-    
     it "should convert any Integer or Float to Hz" do
       { 69    => 440.0,
         440.0 => 440.0 }.each do |arg, hz|
