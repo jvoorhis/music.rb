@@ -9,8 +9,8 @@ class PianoRoll
     @w          = options.fetch(:width, 24.0)
     @h          = options.fetch(:height, 12.0)
     ps          = @timeline.map(&:pitch)
-    @minp       = ps.min
-    @maxp       = ps.max
+    @minp       = ps.min.to_midi
+    @maxp       = ps.max.to_midi
     @rangep     = @maxp - @minp
     @xml        = Builder::XmlMarkup.new(:indent => 2)
     @standalone = options.fetch(:standalone, true)
@@ -52,7 +52,7 @@ class PianoRoll
     def draw_notes
       @timeline.each_with_time do |n, t|
         x    = @w * (t / @duration)
-        y    = @h - (@h * (n.pitch - @minp + 1).quo(@rangep))
+        y    = @h - (@h * (n.pitch.to_midi - @minp + 1).quo(@rangep))
         w    = @w * (n.duration / @duration)
         h    = @h * 1.quo(@rangep)
         fill = '#ff0000'

@@ -3,11 +3,17 @@ module Music
     include Comparable
     attr_reader :pc, :oct
     
-    def self.from_integer(i)
+    def self.from_midi(i)
       pc  = PitchClass.from_integer(i)
       oct = i.div(12) - 1
       new(pc, oct)
     end
+    class << self; alias from_integer from_midi end
+    
+    def self.from_hz(hz)
+      from_integer(ftom(hz))
+    end
+    class << self; alias from_float from_hz end
     
     def initialize(pc, oct)
       @pc, @oct = pc, oct
@@ -24,6 +30,12 @@ module Music
     end
     
     def -(n) self + -n end
+    
+    def /(n) self.class.from_hz(self.to_hz / n) end
+    
+    def *(n) self.class.from_hz(self.to_hz * n) end
+    
+    def %(pitch) to_f / pitch.to_f end
     
     def <=>(pitch)
       [to_i, oct, pc] <=> [pitch.to_i, pitch.oct, pitch.pc]
@@ -50,7 +62,7 @@ module Music
   class PitchClass
     include Comparable
     
-    def self.from_integer(i)
+    def self.from_midi(i)
       case i % 12
         when 0: c
         when 1: cs
@@ -66,6 +78,7 @@ module Music
         when 11: b
       end
     end
+    class << self; alias from_integer from_midi end
     
     attr_reader :name, :rank
     alias natural_rank rank

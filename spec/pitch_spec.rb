@@ -2,9 +2,15 @@ require File.join( File.dirname(__FILE__), 'spec_helper')
 
 describe Pitch do
   it "can be created from an integer" do
-    Pitch.from_integer(0).should   == c_1
-    Pitch.from_integer(69).should  == a4
-    Pitch.from_integer(127).should == g9
+    Pitch.from_midi(0).should   == c_1
+    Pitch.from_midi(69).should  == a4
+    Pitch.from_midi(127).should == g9
+  end
+  
+  it "can be created from frequency in hertz" do
+    Pitch.from_hz(440.0).should  == a4
+    Pitch.from_hz(261.62).should == c4
+    Pitch.from_hz(220.0).should  == a3
   end
   
   it "has a canonical ordering" do
@@ -18,6 +24,39 @@ describe Pitch do
     }.each do |x,y|
       x.should < y
     end
+  end
+  
+  it "results in a new Pitch when semitones are added" do
+    (c4 + 1).should   == cs4
+    (c4 + -1).should  == b3
+    (c4 + 12).should  == c5
+    (c4 + -12).should == c3
+  end
+  
+  it "results in a new Pitch when semitones are subtracted" do
+    (c4 - -1).should  == cs4
+    (c4 - 1).should   == b3
+    (c4 - -12).should == c5
+    (c4 - 12).should  == c3
+  end
+  
+  it "is scaled when multiplied" do
+    (c4 * 2).should   == c5
+    (c4 * 0.5).should == c3
+  end
+  
+  it "produces a ratio when compared with another Pitch" do
+    (c4 % c5).should == 0.5
+    (c5 % c4).should == 2.0
+    
+    (f_1 % c_1).should be_close(1.334840, 1e-6)
+    (g_1 % c_1).should be_close(1.498307, 1e-6)
+    
+    (f4 % c4).should be_close(1.334840, 1e-6)
+    (g4 % c4).should be_close(1.498307, 1e-6)
+    
+    (f9 % c9).should be_close(1.334840, 1e-6)
+    (g9 % c9).should be_close(1.498307, 1e-6)
   end
 end
 
@@ -212,7 +251,7 @@ describe "All PitchClass representations" do
     end
   end
   
-  it "results in a new pitch class when half-steps are added" do
+  it "results in a new pitch class when semitones are added" do
     (c + 1).to_i.should == c.to_i + 1
   end
   
