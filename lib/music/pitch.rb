@@ -23,11 +23,21 @@ module Music
       Pitch.new(pc1, oct1)
     end
     
+    def -(n) self + -n end
+    
     def <=>(pitch)
-      [oct, pc] <=> [pitch.oct, pitch.pc]
+      [to_i, oct, pc] <=> [pitch.to_i, pitch.oct, pitch.pc]
     end
     
-    def to_i; pc.to_i + (oct + 1) * 12 end
+    def to_midi
+      pc.to_i + (oct + 1) * 12
+    end
+    alias to_i to_midi
+    
+    def to_hz
+      440.0 * (2.0 ** ((to_i.to_f-69)/12))
+    end
+    alias to_f to_hz
     
     def sharp; Pitch.new(Sharp.new(pc), oct) end
     
@@ -67,6 +77,8 @@ module Music
     
     def +(n) self.class.from_integer(to_i + n) end
     
+    def -(n) self + -n end
+    
     def <=>(pc)
       [rank, natural_rank] <=> [pc.rank, pc.natural_rank]
     end
@@ -90,6 +102,8 @@ module Music
     def +(n)
       self.class.new(pc + n)
     end
+    
+    def -(n) self + -n end
     
     def <=>(other)
       [rank, natural_rank] <=> [other.rank, other.natural_rank]

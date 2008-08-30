@@ -6,6 +6,19 @@ describe Pitch do
     Pitch.from_integer(69).should  == a4
     Pitch.from_integer(127).should == g9
   end
+  
+  it "has a canonical ordering" do
+    # Representative cases:
+    { c4  => cs4, # Raised by a semitone
+      cs4 => df4, # Enharmonics
+      es4 => f4,
+      c3  => c4,  # Across octaves
+      bs3 => c4,
+      cf4 => bs3
+    }.each do |x,y|
+      x.should < y
+    end
+  end
 end
 
 describe PitchClass do
@@ -16,15 +29,21 @@ describe PitchClass do
       f => 5,
       g => 7,
       a => 9,
-      b => 11 }.all? { |pc, i| pc.rank == i }.should be_true
+      b => 11 }.each do |pc, i|
+      pc.rank.should == i
+    end
   end
   
   it "has a natural rank" do
-    [c,d,e,f,g,a,b].all? { |pc| pc.natural_rank == pc.rank }.should be_true
+    [c,d,e,f,g,a,b].each do |pc|
+      pc.natural_rank.should == pc.rank
+    end
   end
   
   it "can be cast to an Integer" do
-    [c,d,e,f,g,a,b].all? { |pc| pc.to_i == pc.rank }.should be_true
+    [c,d,e,f,g,a,b].each do |pc|
+      pc.to_i.should == pc.rank
+    end
   end
   
   it "can be constructed from an Integer" do
@@ -39,7 +58,9 @@ describe PitchClass do
       8  => gs,
       9  => a,
       10 => as,
-      11 => b }.all? { |i, pc| PitchClass.from_integer(i) == pc }.should be_true
+      11 => b }.each do |i, pc|
+      PitchClass.from_integer(i).should == pc 
+    end
   end
   
   it "can be constructed from an Integer >= 12" do
@@ -56,7 +77,9 @@ describe PitchClass do
       f => 'f',
       g => 'g',
       a => 'a',
-      b => 'b' }.all? { |pc, s| pc.to_s == s }.should be_true
+      b => 'b' }.each do |pc, s|
+      pc.to_s.should == s
+    end
   end
 end
 
@@ -68,7 +91,9 @@ describe Sharp do
       fs => f,
       gs => g,
       as => a,
-      bs => b }.all? { |sharp, nat| sharp == nat.sharp }.should be_true
+      bs => b }.each do |sharp, nat|
+      sharp.should == nat.sharp
+    end
   end
   
   it "has a rank" do
@@ -78,7 +103,9 @@ describe Sharp do
       fs => f,
       gs => g,
       as => a,
-      bs => b }.all? { |sharp, nat| sharp.rank == nat.rank + 1 }.should be_true
+      bs => b }.each do |sharp, nat|
+      sharp.rank.should == nat.rank + 1
+    end
   end
   
   it "has a natural rank" do
@@ -88,11 +115,15 @@ describe Sharp do
       fs => f,
       gs => g,
       as => a,
-      bs => b }.all? { |sharp, nat| sharp.natural_rank == nat.rank }.should be_true
+      bs => b }.each do |sharp, nat|
+      sharp.natural_rank.should == nat.rank
+    end
   end
   
   it "can be cast to an Integer" do
-    [cs,ds,es,fs,gs,as,bs].all? { |a| a.to_i == a.rank }.should be_true
+    [cs,ds,es,fs,gs,as,bs].each do |a|
+      a.to_i.should == a.rank
+    end
   end
   
   it "has a String representation" do
@@ -102,7 +133,9 @@ describe Sharp do
       fs => 'fs',
       gs => 'gs',
       as => 'as',
-      bs => 'bs' }.all? { |pc, s| pc.to_s == s }.should be_true
+      bs => 'bs' }.each do |pc, s|
+      pc.to_s.should == s 
+    end
   end
 end
 
@@ -114,7 +147,9 @@ describe Flat do
       ff => f,
       gf => g,
       af => a,
-      bf => b }.all? { |sharp, nat| sharp == nat.flat }.should be_true
+      bf => b }.each do |sharp, nat|
+      sharp.should == nat.flat 
+    end
   end
   
   it "has a rank" do
@@ -124,7 +159,9 @@ describe Flat do
       ff => f,
       gf => g,
       af => a,
-      bf => b }.all? { |a,pc| a.rank == pc.rank - 1 }.should be_true
+      bf => b }.each do |a,pc|
+      a.rank.should == pc.rank - 1 
+    end
   end
   
   it "has a natural rank" do
@@ -134,11 +171,15 @@ describe Flat do
       ff => f,
       gf => g,
       af => a,
-      bf => b }.all? { |a,pc| a.natural_rank == pc.rank }.should be_true
+      bf => b }.each do |a,pc|
+      a.natural_rank.should == pc.rank 
+    end
   end
   
   it "can be cast to an Integer" do
-    [cf,df,ef,ff,gf,af,bf].all? { |a| a.to_i == a.rank }.should be_true
+    [cf,df,ef,ff,gf,af,bf].each do |a|
+      a.to_i.should == a.rank 
+    end
   end
   
   it "has a String representation" do
@@ -148,11 +189,13 @@ describe Flat do
       ff => 'ff',
       gf => 'gf',
       af => 'af',
-      bf => 'bf' }.all? { |pc, s| pc.to_s == s }.should be_true
+      bf => 'bf' }.each do |pc, s|
+      pc.to_s.should == s 
+    end
   end
 end
 
-describe "PitchClasses" do
+describe "All PitchClass representations" do
   it "has a canonical ordering" do
     [c,d,e,f,g,a,b].each do |pc|
       (pc.flat < pc).should be_true
@@ -164,6 +207,21 @@ describe "PitchClasses" do
       es => f,
       fs => gf,
       gs => af,
-      as => bf }.all? { |x, y| x < y }.should be_true
+      as => bf }.each do |x, y|
+      x.should < y 
+    end
+  end
+  
+  it "results in a new pitch class when half-steps are added" do
+    (c + 1).to_i.should == c.to_i + 1
+  end
+  
+  it "are equivalent to themselves when adding 12 semitones" do
+    [cf,c,cs,df,d,ds,ef,e,es,ff,f,fs,gf,g,gs,af,a,as,bf,b,bs].each do |pc|
+      (pc + 12).should == pc
+      (pc + -12).should == pc
+      (pc - 12).should == pc
+      (pc - -12).should == pc
+    end
   end
 end
