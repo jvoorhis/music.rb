@@ -45,6 +45,11 @@ describe Pitch do
     (c4 * 0.5).should == c3
   end
   
+  it "is scaled when divided" do
+    (c4 / 0.5).should == c5
+    (c4 / 2).should   == c3
+  end
+  
   it "produces a ratio when compared with another Pitch" do
     (c4 % c5).should == 0.5
     (c5 % c4).should == 2.0

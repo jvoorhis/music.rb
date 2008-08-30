@@ -31,9 +31,9 @@ module Music
     
     def -(n) self + -n end
     
-    def /(n) self.class.from_hz(self.to_hz / n) end
-    
     def *(n) self.class.from_hz(self.to_hz * n) end
+    
+    def /(n) self * 1.quo(n) end
     
     def %(pitch) to_f / pitch.to_f end
     
