@@ -41,6 +41,10 @@ module Music
       [to_i, oct, pc] <=> [pitch.to_i, pitch.oct, pitch.pc]
     end
     
+    def eql?(pitch)
+      (self <=> pitch) == 0
+    end
+    
     def hash
       [oct, pc].hash
     end
@@ -100,8 +104,12 @@ module Music
       [rank, natural_rank] <=> [pc.rank, pc.natural_rank]
     end
     
+    def eql?(pc)
+      (self <=> pc) == 0
+    end
+    
     def hash
-      [rank, natural_rank].hash
+      [self.class.name, rank, natural_rank].hash
     end
     
     def sharp; Sharp.new(self) end
@@ -128,6 +136,10 @@ module Music
     
     def <=>(other)
       [rank, natural_rank] <=> [other.rank, other.natural_rank]
+    end
+    
+    def eql?(pc)
+      (self <=> pc) == 0
     end
     
     def hash
