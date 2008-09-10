@@ -63,6 +63,10 @@ describe Pitch do
     (f9 % c9).should be_close(1.334840, 1e-6)
     (g9 % c9).should be_close(1.498307, 1e-6)
   end
+  
+  it "can be used as Hash keys" do
+    c4.hash.should == c4.hash
+  end
 end
 
 describe PitchClass do
@@ -267,5 +271,15 @@ describe "All PitchClass representations" do
       (pc - 12).should == pc
       (pc - -12).should == pc
     end
+  end
+  
+  it "may be used as Hash keys" do
+    c.hash.should == c.hash
+    cs.hash.should == cs.hash
+    cf.hash.should == cf.hash
+    
+    # Enharmonics - no cheating with pitch integers!
+    c.hash.should_not == bs.hash
+    c.hash.should_not == d.flat.flat.hash
   end
 end

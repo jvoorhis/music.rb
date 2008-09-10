@@ -41,6 +41,10 @@ module Music
       [to_i, oct, pc] <=> [pitch.to_i, pitch.oct, pitch.pc]
     end
     
+    def hash
+      [oct, pc].hash
+    end
+    
     def to_midi
       pc.to_i + (oct + 1) * 12
     end
@@ -96,6 +100,10 @@ module Music
       [rank, natural_rank] <=> [pc.rank, pc.natural_rank]
     end
     
+    def hash
+      [rank, natural_rank].hash
+    end
+    
     def sharp; Sharp.new(self) end
     
     def flat; Flat.new(self) end
@@ -120,6 +128,10 @@ module Music
     
     def <=>(other)
       [rank, natural_rank] <=> [other.rank, other.natural_rank]
+    end
+    
+    def hash
+      [self.class.name, pc].hash
     end
     
     def natural_rank; pc.rank end
