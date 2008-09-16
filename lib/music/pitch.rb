@@ -63,6 +63,15 @@ module Music
     
     def flat; Pitch.new(Flat.new(pc), oct) end
     
+    def nearest(pc)
+      d = (self.pc.to_i - pc.to_i).abs
+      if d < 6
+        self.class.new(pc, oct)
+      else
+        self.class.new(pc, oct - 1)
+      end
+    end
+    
     def to_s; pc.to_s + oct.to_s end
     alias inspect to_s
   end

@@ -67,6 +67,13 @@ describe Pitch do
   it "can be used as Hash keys" do
     c4.hash.should == c4.hash
   end
+  
+  it "returns the nearest Pitch of given PitchClass" do
+    c4.nearest(b).should == b3
+    c4.nearest(bs).should == bs3
+    c4.nearest(c).should == c4
+    c4.nearest(d).should == d4
+  end
 end
 
 describe PitchClass do
