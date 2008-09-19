@@ -47,6 +47,13 @@ module Math
 end  
 
 class Numeric
+  
+  def sgn
+    if zero? then 0
+    elsif self > 0 then 1
+    else -1 end
+  end
+  
   def clip_low(n)
     self > n ? self : n
   end

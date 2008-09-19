@@ -21,11 +21,8 @@ module Music
     
     def +(n)
       pc1  = pc + n
-      oct1 = (to_i + n).div(12) + if (pc1 > pc) ^ !(n > 0)
-                                    -1
-                                  else
-                                    -n ** 0
-                                  end
+      oct1 = (to_i + n).div(12) + if (pc1 > pc) ^ !(n > 0) then -1
+                                  else -n ** 0 end
       Pitch.new(pc1, oct1)
     end
     
@@ -59,9 +56,15 @@ module Music
     end
     alias to_f to_hz
     
-    def sharp; Pitch.new(Sharp.new(pc), oct) end
+    def sharp; self.class.new(pc.sharp, oct) end
     
-    def flat; Pitch.new(Flat.new(pc), oct) end
+    def flat; self.class.new(pc.flat, oct) end
+    
+    def acc_i; pc.acc_i end
+    
+    def acc(i)
+      self.class.new(pc.acc(i), oct)
+    end
     
     def nearest(pc)
       d = (self.pc.to_i - pc.to_i).abs
@@ -125,6 +128,16 @@ module Music
     
     def flat; Flat.new(self) end
     
+    def acc_i; 0 end
+    
+    def acc(i)
+      case i.sgn
+        when 1: sharp.acc(i-1)
+        when 0: self
+        when -1: flat.acc(i+1)
+      end
+    end
+    
     def to_s; name.to_s end
     alias inspect to_s
   end
@@ -163,17 +176,33 @@ module Music
     
     def flat; Flat.new(self) end
     
+    def acc(i)
+      case i.sgn
+        when 1: sharp.acc(i-1)
+        when 0: self
+        when -1: flat.acc(i+1)
+      end
+    end
+    
     def inspect; to_s end
   end
   
-  class Sharp < Accidental    
+  class Sharp < Accidental
     def rank; pc.rank + 1 end
+    
+    def flat; pc end
+    
+    def acc_i; pc.rank + 1 end
     
     def to_s; "#{pc}s" end
   end
   
   class Flat < Accidental
     def rank; pc.rank - 1 end
+    
+    def sharp; pc end
+    
+    def acc_i; pc.acc_i - 1 end
     
     def to_s; "#{pc}f" end
   end
