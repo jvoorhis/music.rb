@@ -3,10 +3,8 @@
 # Transcribed from http://www.mutopiaproject.org/ftp/ChopinFF/O28/Chop-28-20/Chop-28-20-let.pdf
 
 require 'music'
-require 'music/abs_pitch'
 
 include Music
-include AbsPitch
 
 # Redefine chord to take a list of pitches to a chord of duration QN
 def chord(*ps)
@@ -18,56 +16,56 @@ alias ch chord
 
 def score
 # mm 1
-rh = ch(G2, C3, EF3, G3) & ch(AF2, C3, EF3, AF3) & (ch(G2, B2) | ch(EF3, G3, :dur => DEN) & ch(D3, F3, :dur => SN)) & ch(EF2, G2, C3, EF3)
-lh = ch(C1, C2) & ch(F0, F1) & ch(G0, G1) & ch(C1, G1, C2)
+rh = ch(g2, c3, ef3, g3) & ch(af2, c3, ef3, af3) & (ch(g2, b2) | ch(ef3, g3, :dur => DEN) & ch(d3, f3, :dur => SN)) & ch(ef2, g2, c3, ef3)
+lh = ch(c1, c2) & ch(f0, f1) & ch(g0, g1) & ch(c1, g1, c2)
 
 # mm 2
-rh &= ch(EF2, AF2, C3, EF3) & ch(F2, AF2, DF3, F3) & (ch(DF2, EF2, G2) | ch(C3, EF3, :dur => DEN) & ch(BF2, DF3, :dur => SN)) & ch(C2, EF2, G2, C3)
-lh &= ch(AF1, AF2) & ch(DF1, DF2) & ch(EF1, EF2) & ch(AF1, AF2)
+rh &= ch(ef2, af2, c3, ef3) & ch(f2, af2, df3, f3) & (ch(df2, ef2, g2) | ch(c3, ef3, :dur => DEN) & ch(bf2, df3, :dur => SN)) & ch(c2, ef2, g2, c3)
+lh &= ch(af1, af2) & ch(df1, df2) & ch(ef1, ef2) & ch(af1, af2)
 
 # mm 3
-rh &= ch(D2, F2, B2, D3) & ch(E2, G2, BF2, C3, E3) & (ch(AF2, C3) | note(G3, DEN) & note(F3, SN)) & ch(G2, C3, EF3)
-lh &= ch(G1, G2) & ch(C0, C1) & ch(F0, F1) & ch(C1, C2)
+rh &= ch(d2, f2, b2, d3) & ch(e2, g2, bf2, c3, e3) & (ch(af2, c3) | note(g3, DEN) & note(f3, SN)) & ch(g2, c3, ef3)
+lh &= ch(g1, g2) & ch(c0, c1) & ch(f0, f1) & ch(c1, c2)
 
 # mm 4
-rh &= ch(FS2, C3, D3) & ch(G2, B2, D3, G3) & (ch(C3, D3, FS3) | note(B3, DEN) & note(A3, SN)) & ch(BF2, D3, G3)
-lh &= ch(D1, A1, D2) & ch(G0, G1) & ch(D0, D1) & ch(G0, G1)
+rh &= ch(fs2, c3, d3) & ch(g2, b2, d3, g3) & (ch(c3, d3, fs3) | note(b3, DEN) & note(a3, SN)) & ch(bf2, d3, g3)
+lh &= ch(d1, a1, d2) & ch(g0, g1) & ch(d0, d1) & ch(g0, g1)
 
 # mm 5
-rh &= ch(EF3, G3, EF4) & ch(EF3, AF3, EF4) & (ch(D3, D4) | note(AF3, DEN) & note(FS3, SN)) & ch(D3, AF3, D4)
-lh &= ch(C1, C2) & ch(C2, C3) & ch(B1, B2) & ch(BF1, BF2)
+rh &= ch(ef3, g3, ef4) & ch(ef3, af3, ef4) & (ch(d3, d4) | note(af3, DEN) & note(fs3, SN)) & ch(d3, af3, d4)
+lh &= ch(c1, c2) & ch(c2, c3) & ch(b1, b2) & ch(bf1, bf2)
 
 # mm 6
-rh &= ch(C3, G3, C4) & ch(C3, D3, FS3, D4) & (ch(D3, G3, B3, :dur => DEN) & ch(C3, A3, :dur => SN)) & ch(B2, D3, G3)
-lh &= ch(A1, A2) & ch(AF1, AF2) & ch(G1, G2) & ch(F1, F2)
+rh &= ch(c3, g3, c4) & ch(c3, d3, fs3, d4) & (ch(d3, g3, b3, :dur => DEN) & ch(c3, a3, :dur => SN)) & ch(b2, d3, g3)
+lh &= ch(a1, a2) & ch(af1, af2) & ch(g1, g2) & ch(f1, f2)
 
 # mm 7
-rh &= ch(C3, G3, C4) & ch(AF2, C3, AF3) & (ch(G2, D3) | note(G3, DEN) & note(F3, SN)) & ch(G2, C3, EF3)
-lh &= ch(EF1, EF2) & ch(F1, F2) & ch(B0, B1) & ch(C1, C2)
+rh &= ch(c3, g3, c4) & ch(af2, c3, af3) & (ch(g2, d3) | note(g3, DEN) & note(f3, SN)) & ch(g2, c3, ef3)
+lh &= ch(ef1, ef2) & ch(f1, f2) & ch(b0, b1) & ch(c1, c2)
 
 # mm 8
-rh &= ch(EF2, AF2, C3, EF3) & ch(F2, AF2, DF3, F3) & (ch(F2, G2, B2) | note(EF3, DEN) & note(D3, SN)) & ch(EF2, G2, C3)
-lh &= ch(AF0, AF1) & ch(DF0, DF1) & ch(G0, G1) & ch(C0, C1)
+rh &= ch(ef2, af2, c3, ef3) & ch(f2, af2, df3, f3) & (ch(f2, g2, b2) | note(ef3, DEN) & note(d3, SN)) & ch(ef2, g2, c3)
+lh &= ch(af0, af1) & ch(df0, df1) & ch(g0, g1) & ch(c0, c1)
 
 # mm 9
-rh &= ch(EF3, G3, EF4) & ch(EF3, AF3, EF3) & (ch(D3, D4) | note(AF3, DEN) & note(FS3, SN)) & ch(D3, G3, D4)
-lh &= ch(C1, C2) & ch(C2, C3) & ch(B1, B2) & ch(BF1, BF2)
+rh &= ch(ef3, g3, ef4) & ch(ef3, af3, ef3) & (ch(d3, d4) | note(af3, DEN) & note(fs3, SN)) & ch(d3, g3, d4)
+lh &= ch(c1, c2) & ch(c2, c3) & ch(b1, b2) & ch(bf1, bf2)
 
 # mm 10
-rh &= ch(C3, G3, C4) & ch(C3, D3, FS3, D4) & (ch(D3, G3, B3, :dur => DEN) & ch(C3, A3, :dur => SN)) & ch(B2, D3, G3)
-lh &= ch(A1, A2) & ch(AF1, AF2) & ch(G1, G2) & ch(F1, F2)
+rh &= ch(c3, g3, c4) & ch(c3, d3, fs3, d4) & (ch(d3, g3, b3, :dur => DEN) & ch(c3, a3, :dur => SN)) & ch(b2, d3, g3)
+lh &= ch(a1, a2) & ch(af1, af2) & ch(g1, g2) & ch(f1, f2)
 
 # mm 11
-rh &= ch(C3, G3, C4) & ch(AF2, C3, AF3) & (ch(G2, D3) | note(G3, DEN) & note(F3, SN)) & ch(G2, C3, EF3)
-lh &= ch(EF1, EF2) & ch(F1, F2) & ch(B0, B1) & ch(C1, C2)
+rh &= ch(c3, g3, c4) & ch(af2, c3, af3) & (ch(g2, d3) | note(g3, DEN) & note(f3, SN)) & ch(g2, c3, ef3)
+lh &= ch(ef1, ef2) & ch(f1, f2) & ch(b0, b1) & ch(c1, c2)
 
 # mm 12
-rh &= ch(EF2, AF2, C3, EF3) & ch(F2, AF2, DF3, F3) & (ch(F2, G2, B2) | note(EF3, DEN) & note(D3, SN)) & ch(EF2, G2, C3)
-lh &= ch(AF0, AF1) & ch(DF0, DF1) & ch(G0, G1) & ch(C0, C1)
+rh &= ch(ef2, af2, c3, ef3) & ch(f2, af2, df3, f3) & (ch(f2, g2, b2) | note(ef3, DEN) & note(d3, SN)) & ch(ef2, g2, c3)
+lh &= ch(af0, af1) & ch(df0, df1) & ch(g0, g1) & ch(c0, c1)
 
 # mm 13
-rh &= ch(C3, EF3, G3, C4, :dur => 4)
-lh &= ch(C2, G2, :dur => 4)
+rh &= ch(c3, ef3, g3, c4, :dur => 4)
+lh &= ch(c2, g2, :dur => 4)
 
 score = rh | lh
 # Not all applications agree on where to begin numbering pitches. Uncomment the

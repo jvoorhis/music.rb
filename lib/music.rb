@@ -18,6 +18,7 @@ require 'prelude'
 require 'forwardable'
 require 'music/duration'
 require 'music/pitch'
+require 'music/key'
 require 'music/objects'
 require 'music/arrangement'
 require 'music/interpreter'
@@ -53,15 +54,6 @@ representation is polymorphic.
   # Convert hertz to midi note numbers.
   def ftom(pitch)
     (69 + 12 * (Math.log2(pitch / 440.0))).round
-  end
-  
-  # Convert any pitch value to midi. 
-  def MidiPitch(pitch)
-    case pitch
-      when Integer then pitch
-      when Float then ftom(pitch)
-      else raise ArgumentError, "Cannot cast #{pitch.class} to midi."
-    end
   end
   
   # Convert a midi pitch value to Hertz.
