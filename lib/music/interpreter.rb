@@ -1,16 +1,16 @@
 module Music
-  module Performer
+  module Interpreter
     
     class Base
-      def self.perform(music)
-        new.perform(music)
+      def self.eval(music)
+        new.eval(music)
       end
       
-      def perform(music, context = Context.default)
-        music.perform(self, context)
+      def eval(music, context = Context.default)
+        music.eval(self, context)
       end
       
-      def perform_group(music, context)
+      def eval_group(music, context)
         music
       end
     end
