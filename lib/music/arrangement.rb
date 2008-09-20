@@ -81,12 +81,13 @@ module Music
       end
       
       def to_timeline
-        TimelinePerformer.perform(self)
+        TimelineInterpreter.eval(self)
       end
       
       def inspect
-        PrettyPrinter.perform(self)
+        PrettyPrinter.eval(self)
       end
+      alias to_s inspect
     end
     
     class Seq < Base
@@ -109,11 +110,11 @@ module Music
         self.class.new(left.map(&block), right.map(&block))
       end
       
-      def perform(performer, c0)
-        l  = left.perform(performer, c0)
+      def eval(interpreter, c0)
+        l  = left.eval(interpreter, c0)
         c1 = c0.advance(left.duration)
-        r  = right.perform(performer, c1)
-        performer.perform_seq(l, r, c0)
+        r  = right.eval(interpreter, c1)
+        interpreter.eval_seq(l, r, c0)
       end
       
       def take(d)
@@ -171,10 +172,10 @@ module Music
         self.class.new(top.map(&block), bottom.map(&block))
       end
       
-      def perform(performer, c0)
-        t  = performer.perform(top, c0)
-        b  = performer.perform(bottom, c0)
-        performer.perform_par(t, b, c0)
+      def eval(interpreter, c0)
+        t  = interpreter.eval(top, c0)
+        b  = interpreter.eval(bottom, c0)
+        interpreter.eval_par(t, b, c0)
       end
       
       def take(d)
@@ -222,10 +223,10 @@ module Music
         self.class.new(music.reverse, attributes)
       end
       
-      def perform(performer, c0)
+      def eval(interpreter, c0)
         c1 = c0.push(attributes)
-        m  = music.perform(performer, c1)
-        performer.perform_group(m, c0)
+        m  = music.eval(interpreter, c1)
+        interpreter.eval_group(m, c0)
       end
     end
     
@@ -233,7 +234,7 @@ module Music
       attr_reader :item
       
       extend Forwardable
-      def_delegators :@item, :duration, :perform
+      def_delegators :@item, :duration, :eval
       
       def initialize(item)
         @item = item

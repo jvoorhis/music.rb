@@ -55,20 +55,20 @@ module Music
     def to_timeline; self end
   end
   
-  class TimelinePerformer < Performer::Base
-    def perform_seq(left, right, context)
+  class TimelineInterpreter < Interpreter::Base
+    def eval_seq(left, right, context)
       left + right
     end
     
-    def perform_par(top, bottom, context)
+    def eval_par(top, bottom, context)
       top.merge(bottom)
     end
     
-    def perform_note(note, context)
+    def eval_note(note, context)
       Timeline.new([Event.new(context.time, note)])
     end
     
-    def perform_silence(silence, context)
+    def eval_silence(silence, context)
       Timeline.new([])
     end
   end

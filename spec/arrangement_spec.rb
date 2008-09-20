@@ -165,7 +165,7 @@ describe Group do
   end
   
   it "should provide inherited attributes when interpreted" do
-    timeline = TimelinePerformer.perform(@object)
+    timeline = TimelineInterpreter.eval(@object)
     timeline.all? { |e| e.attributes[:slur] }.should be_true
     
     timeline[0].object.attributes[:accented].should be_true

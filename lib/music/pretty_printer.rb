@@ -1,24 +1,24 @@
-require 'music/performer'
+require 'music/interpreter'
 
 module Music
-  class PrettyPrinter < Performer::Base
-    def perform_seq(left, right, context)
+  class PrettyPrinter < Interpreter::Base
+    def eval_seq(left, right, context)
       "#{left} & #{right}"
     end
     
-    def perform_par(top, bottom, context)
+    def eval_par(top, bottom, context)
       "(#{top}) | (#{bottom})"
     end
     
-    def perform_group(arrangement, context)
+    def eval_group(arrangement, context)
       "group(#{arrangement})"
     end
     
-    def perform_note(note, context)
+    def eval_note(note, context)
       "note(#{note.pitch}, #{note.duration})"
     end
     
-    def perform_silence(silence, context)
+    def eval_silence(silence, context)
       "silence(#{silence.duration})"
     end
   end

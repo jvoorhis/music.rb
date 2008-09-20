@@ -20,7 +20,7 @@ require 'music/duration'
 require 'music/pitch'
 require 'music/objects'
 require 'music/arrangement'
-require 'music/performer'
+require 'music/interpreter'
 require 'music/timeline'
 require 'music/smf_writer'
 

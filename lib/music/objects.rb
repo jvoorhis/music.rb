@@ -15,11 +15,12 @@ module Music
       include Temporal
       
       def inspect
-        PrettyPrinter.perform(self)
+        PrettyPrinter.eval(self)
       end
+      alias to_s inspect
       
       def to_timeline
-        TimelinePerformer.perform(self)
+        TimelineInterpreter.eval(self)
       end
     end
     
@@ -40,8 +41,8 @@ module Music
       
       def transpose(interval) self end
       
-      def perform(performer, c)
-        performer.perform_silence(self, c)
+      def eval(interpreter, c)
+        interpreter.eval_silence(self, c)
       end
       
       def take(time)
@@ -94,9 +95,9 @@ module Music
         update(:pitch, pitch + interval)
       end
       
-      def perform(performer, c)
+      def eval(interpreter, c)
         n1 = inherit(c.attributes)
-        performer.perform_note(n1, c)
+        interpreter.eval_note(n1, c)
       end
       
       def inherit(attrs)
