@@ -1,5 +1,6 @@
 require File.join( File.dirname(__FILE__), 'spec_helper')
 require 'rational'
+require 'music/midi_time'
 
 include Music
 

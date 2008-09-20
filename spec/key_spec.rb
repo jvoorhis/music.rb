@@ -34,12 +34,14 @@ describe Key do
   
   it "should transpose non-member pitches diatonically" do
     @key.transpose(cf4, 1).should == df4
-    @key.transpose(cs4, 1).should == ds4
-    
     @key.transpose(cf4, 2).should == ef4
-    @key.transpose(cs4, 2).should == es4
-    
     @key.transpose(cf4, 3).should == ff4
+    
+    @key.transpose(cs4, 1).should == ds4
+    @key.transpose(cs4, 2).should == es4
     @key.transpose(cs4, 3).should == fs4
+    
+    @key.transpose(c4.flat.flat, 1).should == d4.flat.flat
+    @key.transpose(c4.sharp.sharp, 1).should == d4.sharp.sharp
   end
 end

@@ -128,6 +128,8 @@ module Music
     
     def flat; Flat.new(self) end
     
+    def kernel; self end
+    
     def acc_i; 0 end
     
     def acc(i)
@@ -175,6 +177,8 @@ module Music
     def sharp; Sharp.new(self) end
     
     def flat; Flat.new(self) end
+    
+    def kernel; pc.kernel end
     
     def acc(i)
       case i.sgn
