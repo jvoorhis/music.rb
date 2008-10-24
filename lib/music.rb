@@ -81,6 +81,7 @@ representation, which is subject to change.
   def note(pit, dur = 1, attrs = {})
     Item.new(Note.new(pit, dur, attrs))
   end
+  alias n note
   
   # Arrange silence.
   def silence(dur = 1, attrs = {})

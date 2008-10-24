@@ -1,5 +1,9 @@
 module Music
-  module CSound
+  module Csound
+    
+    def gen(n, time, size)
+    end
+    module_function :gen
     
     class ScoreWriter
       attr_reader :instruments, :functions, :path
@@ -66,14 +70,17 @@ end
 
 if __FILE__ == $0
   include Music
-  def n(*args); note(*args) end
+  include Music::Csound
+  
   score = group [n(c4), n(e4), n(g4), n(c5)].inject(&:&), :instrument => 1
-  writer = CSound::ScoreWriter.new(
-             :path => "score.sco",
-             :functions => {},
-             :instruments => {
-               1 => [:pitch],
-             }
-           )
+  writer = ScoreWriter.new(
+    :path => "score.sco",
+    :functions => {
+      1 => gen(1, 2, 3)
+    },
+    :instruments => {
+      1 => [:pitch],
+    }
+  )
   writer.write(score)
 end
