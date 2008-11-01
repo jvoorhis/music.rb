@@ -17,16 +17,3 @@ module Music
     end
   end
 end
-
-# Obtain an Object's attribute value by passing it a Context.
-class Object
-  def attr_eval(context)
-    self
-  end
-end
-
-class Proc
-  def attr_eval(context)
-    call(context)
-  end
-end
