@@ -57,7 +57,7 @@ end
 
 describe Score::Base do
   it "should return the empty MusicObject" do
-    Score::Base.none.should == Item.new( Rest.new(0) )
+    Score::Base.none.should == Rest.new(0)
   end
 end
 
@@ -132,18 +132,18 @@ end
 describe Section do
   before(:all) do
     @object = section(
-    @music  =   note(60, 2) & note(60, 2, :accented => nil),
+    @expr   =   note(60, 2),
     @attrs  =   { :slur => true, :accented => true })
   end
   
   it_should_behave_like "all scores"
   
   it "wraps a MusicObject" do
-    @object.music.should == @music
+    @object.music.should == @expr
   end
   
   it "has a duration" do
-    @object.duration.should == @music.duration
+    @object.duration.should == @expr.duration
   end
   
   it "has attributes" do
@@ -151,15 +151,15 @@ describe Section do
   end
   
   it "can be compared" do
-    Section.new(@music, @attrs).should == @object
+    Section.new(@expr, @attrs).should == @object
   end
   
   it "can be compared independently of its attributes" do
-    Section.new(@music).should == @object
+    Section.new(@expr).should == @object
   end
   
   it "can be transposed" do
-    @object.transpose(5).should == Section.new(@music.transpose(5), @attrs)
+    @object.transpose(5).should == Section.new(@expr.transpose(5), @attrs)
   end
   
   it "should provide inherited attributes when interpreted" do
@@ -167,7 +167,6 @@ describe Section do
     timeline.all? { |e| e.attributes[:slur] }.should be_true
     
     timeline[0].object.attributes[:accented].should be_true
-    timeline[1].object.attributes[:accented].should be_nil
   end
   
   it "can be mapped" do
@@ -176,7 +175,53 @@ describe Section do
   end
 end
 
-describe Item do
+describe Rest do
+  before(:all) do
+    @object = Rest.new(1, :fermata => true)
+  end
+  
+  it "should have a duration" do
+    @object.duration.should == 1
+  end
+  
+  it "can be constructed with attributes" do
+    @object.fermata.should be_true
+  end
+end
+
+describe Note do
+  before(:all) do
+    @object = Note.new(60, 1, :dynamic => :mf)
+  end
+  
+  it "should have a pitch" do
+    @object.pitch.should == 60
+  end
+  
+  it "should have a duration" do
+    @object.duration.should == 1
+  end
+  
+  it "can be constructed with attributes" do
+    @object.dynamic.should == :mf
+  end
+  
+  it "can be transposed" do
+    @object.transpose(2).should == Note.new(@object.pitch+2, @object.duration, @object.attributes)
+  end
+  
+  it "can be compared" do
+    [ Note.new(60,1),
+      Note.new(60,1.0),
+      Note.new(60,1.quo(1))
+    ].each { |val| val.should == @object }
+    [ Rest.new(1),
+      Score::Base.allocate
+    ].each { |val| val.should_not == @object }
+  end
+end
+
+describe "All ScoreObjects" do
   before(:all) do
     @object = note(60)
   end
@@ -244,13 +289,13 @@ end
 
 describe "helper functions" do
   it "should arrange notes" do
-    note(60).should    == Item.new(Note.new(60, 1))
-    note(60, 2).should == Item.new(Note.new(60, 2))
+    note(60).should    == Note.new(60, 1)
+    note(60, 2).should == Note.new(60, 2)
   end
   
   it "should arrange rests" do
-    rest().should  == Item.new(Rest.new(1))
-    rest(2).should == Item.new(Rest.new(2))
+    rest().should  == Rest.new(1)
+    rest(2).should == Rest.new(2)
   end
   
   it "should arrange sections" do

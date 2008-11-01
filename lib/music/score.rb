@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'forwardable'
+require 'music/attributes'
 require 'music/temporal'
 require 'music/timeline'
 require 'music/pretty_printer'
@@ -228,40 +229,106 @@ module Music
       end
     end
     
-    class Item < Base
-      attr_reader :item
+    class ScoreObject < Base
+      include Attributes
+      include Temporal
       
-      extend Forwardable
-      def_delegators :@item, :duration, :eval
+      def map; yield self end
       
-      def initialize(item)
-        @item = item
+      def reverse; self end
+      
+      def inspect
+        PrettyPrinter.eval(self)
+      end
+      alias to_s inspect
+      
+      def to_timeline
+        TimelineInterpreter.eval(self)
+      end
+      
+      def read(name)
+        @attributes[name]
+      end
+      
+      def take(time)
+        if time <= 0 then none
+        else
+          update(:duration, [time, duration].min)
+        end
+      end
+      
+      def drop(time)
+        if time >= duration then none
+        else
+          update(:duration, (duration - time).clip(0..duration))
+        end
+      end
+    end
+    
+    # Remain silent for the duration.
+    class Rest < ScoreObject
+      attr_reader :attributes
+      
+      def initialize(duration, attributes = {})
+        @attributes = attributes.merge(:duration => duration)
       end
       
       def ==(other)
         case other
-          when Item: item == other.item
+          when Rest: duration == other.duration
           else false
         end
       end
       
-      def map; self.class.new yield(item) end
+      def transpose(interval) self end
       
-      def take(d)
-        if d <= 0 then none
-        else
-          self.class.new(item.take(d))
+      def eval(interpreter, c)
+        interpreter.eval_rest(self, c)
+      end
+      
+      def update(name, val)
+        a = @attributes.merge(name => val)
+        d = a[:duration]
+        self.class.new(d, a)
+      end
+    end
+    
+    # A note has a steady pitch and a duration.
+    class Note < ScoreObject
+      attr_reader :attributes
+      
+      def initialize(pitch, duration, attrs = {})
+        @attributes = attrs.merge(:pitch => pitch, :duration => duration)
+      end
+      
+      def ==(other)
+        case other
+          when Note
+            [pitch, duration] == [other.pitch, other.duration]
+          else false
         end
       end
       
-      def drop(d)
-        if d >= duration then none
-        else
-          self.class.new(item.drop(d))
-        end
+      def transpose(interval)
+        update(:pitch, pitch + interval)
       end
       
-      def reverse; self end
+      def eval(interpreter, c)
+        n1 = inherit(c.attributes)
+        interpreter.eval_note(n1, c)
+      end
+      
+      def update(name, val)
+        a = @attributes.merge(name => val)
+        p, d = a.values_at(:pitch, :duration)
+        self.class.new(p, d, a)
+      end
+      
+      def inherit(attrs)
+        a = attrs.merge(@attributes)
+        p, d = a.values_at(:pitch, :duration)
+        self.class.new(p, d, a)
+      end
     end
   end
 end

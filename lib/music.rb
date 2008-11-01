@@ -19,15 +19,13 @@ require 'forwardable'
 require 'music/duration'
 require 'music/pitch'
 require 'music/key'
-require 'music/objects'
-require 'music/score'
 require 'music/interpreter'
+require 'music/score'
 require 'music/timeline'
 require 'music/smf_writer'
 
 module Music
   include Duration
-  include Objects
   include Score
   
   module_function
@@ -71,21 +69,21 @@ Music constructors.
 
 A piece of music may be constructed by calling note(), rest(), rest() and
 group(). It is recommended that you use these methods rather than instantiating
-the items directly, e.g. via Music::Objects::Note.new. These functions are both
-more convenient, and decouple your composition from the underlying
+the Score objects directly, e.g. via Music::Objects::Note.new. These functions
+are both more convenient, and decouple your composition from the underlying
 representation, which is subject to change.
 
 =end
   
   # Arrange a note.
   def note(pit, dur = 1, attrs = {})
-    Item.new(Note.new(pit, dur, attrs))
+    Note.new(pit, dur, attrs)
   end
   alias n note
   
   # Arrange a Rest.
   def rest(dur = 1, attrs = {})
-    Item.new(Rest.new(dur, attrs))
+    Rest.new(dur, attrs)
   end
   alias r rest
   
@@ -98,13 +96,13 @@ representation, which is subject to change.
   # A blank arrangement of zero length. This is the identity for parallel
   # and serial composition.
   def none; rest(0) end
-  
+
 =begin
 
 Music combinators.
 
-line() and chord() both accept Enumerable lists of Arrangements, and combine
-them into a new Arrangement.
+seq() and par() both accept Enumerable lists of Scores, and combine
+them into a new Score.
 
 =end
   
