@@ -29,6 +29,14 @@ class Array
   def one?; size == 1 end
   
   def many?; size > 1 end
+  
+  def extract_options
+    if last.kind_of?(Hash)
+      [self[0..-2], self[-1]]
+    else
+      [self, {}]
+    end
+  end
 end
 
 class Symbol
@@ -47,7 +55,6 @@ module Math
 end  
 
 class Numeric
-  
   def sgn
     if zero? then 0
     elsif self > 0 then 1
