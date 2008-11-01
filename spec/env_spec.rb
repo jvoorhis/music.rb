@@ -1,29 +1,5 @@
 require File.join( File.dirname(__FILE__), 'spec_helper')
 
-describe Gen do
-  before(:all) do
-    @score = s( n(c4, 1),
-                :amp => gen { |c| 0.5 })
-  end
-  
-  it "should generate values from the given context" do
-    timeline = @score.to_timeline
-    timeline[0].amp.should == 0.5
-  end
-end
-
-describe Tr do
-  before(:all) do
-    @score = s( n(c4, 1, :amp => 0.5),
-                :amp => tr { |amp| amp * 0.5 } )
-  end
-  
-  it "should transform attribute values" do
-    timeline = @score.to_timeline
-    timeline[0].amp.should == 0.25
-  end
-end
-
 describe Env do
   it "should transform attribute values based on their phase" do
     score = s( seq(n([c4, e4, g4], 1, :amp => 0.5)),

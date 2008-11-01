@@ -21,7 +21,7 @@ require 'music/pitch'
 require 'music/key'
 require 'music/interpreter'
 require 'music/score'
-require 'music/gens'
+require 'music/env'
 require 'music/timeline'
 require 'music/smf_writer'
 

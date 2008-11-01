@@ -48,7 +48,7 @@ module Music
         push(names.inject({}) { |a1, name|
           a1.merge name => case new = self.attributes[name]
             # If a0 yields a Gen, apply it
-            when Gen: new.apply(name, a0[name], self)
+            when Env: new.apply(name, a0[name], self)
             # otherwise, inherit the attribute value from a0 if
             # we haven't defined it
             else self.attributes[name] || a0[name]
