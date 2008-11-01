@@ -6,10 +6,6 @@ require 'music/timeline'
 module Music
   module Objects
     
-    # The identity under parallel and sequential composition.
-    def none; Rest.new(0) end
-    module_function :none
-    
     class Base
       include Attributes
       include Temporal
@@ -21,6 +17,28 @@ module Music
       
       def to_timeline
         TimelineInterpreter.eval(self)
+      end
+      
+      def read(name)
+        if @attributes.key?(name)
+          @attributes[name]
+        else
+          warn "No attribute #{name} for #{inspect}."
+        end
+      end
+      
+      def take(time)
+        if time <= 0 then none
+        else
+          update(:duration, [time, duration].min)
+        end
+      end
+      
+      def drop(time)
+        if time >= duration then none
+        else
+          update(:duration, (duration - time).clip(0..duration))
+        end
       end
     end
     
@@ -43,28 +61,6 @@ module Music
       
       def eval(interpreter, c)
         interpreter.eval_rest(self, c)
-      end
-      
-      def take(time)
-        if time <= 0 then none
-        else
-          update(:duration, [time, duration].min)
-        end
-      end
-      
-      def drop(time)
-        if time >= duration then none
-        else
-          update(:duration, (duration - time).clip(0..duration))
-        end
-      end
-      
-      def read(name)
-        if @attributes.key?(name)
-          @attributes[name]
-        else
-          warn "No attribute #{name} for #{inspect}."
-        end
       end
       
       def update(name, val)
@@ -103,28 +99,6 @@ module Music
         a = attrs.merge(@attributes)
         p, d = a.values_at(:pitch, :duration)
         self.class.new(p, d, a)
-      end
-      
-      def take(time)
-        if time <= 0 then none
-        else
-          update(:duration, [time, duration].min)
-        end
-      end
-      
-      def drop(time)
-        if time >= duration then none
-        else
-          update(:duration, (duration - time).clip(0 .. duration))
-        end
-      end
-      
-      def read(name)
-        if @attributes.key?(name)
-          @attributes[name]
-        else
-          warn "No attribute #{name} for #{inspect}."
-        end
       end
       
       def update(name, val)
