@@ -80,10 +80,10 @@ describe Par do
   it_should_behave_like "all temporal objects"
 end
 
-describe Group do
+describe Section do
   before(:all) do
     hn = RD/4
-    @object = group( note(64, hn) & note(64, hn) | note(60, RD), {} )
+    @object = section( note(64, hn) & note(64, hn) | note(60, RD), {} )
   end
   it_should_behave_like "all temporal objects"
 end

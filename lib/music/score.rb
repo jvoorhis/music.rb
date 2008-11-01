@@ -191,7 +191,7 @@ module Music
       end
     end
     
-    class Group < Base
+    class Section < Base
       extend Forwardable
       def_delegators :@music, :duration
       attr_reader :music, :attributes
@@ -202,7 +202,7 @@ module Music
       
       def ==(other)
         case other
-          when Group: music == other.music
+          when Section: music == other.music
           else false
         end
       end
@@ -226,7 +226,7 @@ module Music
       def eval(interpreter, c0)
         c1 = c0.push(attributes)
         m  = music.eval(interpreter, c1)
-        interpreter.eval_group(m, c0)
+        interpreter.eval_section(m, c0)
       end
     end
     

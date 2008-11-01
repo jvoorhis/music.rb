@@ -90,9 +90,10 @@ representation, which is subject to change.
   alias rest silence
   
   # Arrange a group.
-  def group(mus, attrs)
-    Group.new(mus, attrs)
+  def section(mus, attrs)
+    Section.new(mus, attrs)
   end
+  alias s section
   
   # A blank arrangement of zero length. This is the identity for parallel
   # and serial composition.

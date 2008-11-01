@@ -10,7 +10,9 @@ module Music
         music.eval(self, context)
       end
       
-      def eval_group(music, context)
+      # Default implementation: sections have no special meaning besides
+      # inheritance of attributes.
+      def eval_section(music, context)
         music
       end
     end

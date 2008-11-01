@@ -131,9 +131,9 @@ describe Par do
   end
 end
 
-describe Group do
+describe Section do
   before(:all) do
-    @object = group(
+    @object = section(
     @music  =   note(60, 2) & note(60, 2, :accented => nil),
     @attrs  =   { :slur => true, :accented => true })
   end
@@ -153,15 +153,15 @@ describe Group do
   end
   
   it "can be compared" do
-    Group.new(@music, @attrs).should == @object
+    Section.new(@music, @attrs).should == @object
   end
   
   it "can be compared independently of its attributes" do
-    Group.new(@music).should == @object
+    Section.new(@music).should == @object
   end
   
   it "can be transposed" do
-    @object.transpose(5).should == Group.new(@music.transpose(5), @attrs)
+    @object.transpose(5).should == Section.new(@music.transpose(5), @attrs)
   end
   
   it "should provide inherited attributes when interpreted" do
@@ -174,7 +174,7 @@ describe Group do
   
   it "can be mapped" do
     @object.map { |n| n.transpose(7) }.should ==
-        group( @object.music.transpose(7), @object.attributes )
+        section( @object.music.transpose(7), @object.attributes )
   end
 end
 
@@ -217,10 +217,10 @@ describe "Par of reference duration" do
   it_should_behave_like "all arrangements of reference duration"
 end
 
-describe "Group of reference duration" do
+describe "Section of reference duration" do
   before(:all) do
     @duration = 4
-    @object = group( note(64, 2) & note(64, 2) | note(60, 4), {} )
+    @object = section( note(64, 2) & note(64, 2) | note(60, 4), {} )
   end
   
   it_should_behave_like "all arrangements of reference duration"
@@ -255,8 +255,8 @@ describe "helper functions" do
     rest(2).should == Item.new(Silence.new(2))
   end
   
-  it "should arrange groups" do
-    group(note(67) & note(60), {}).should == Group.new(note(67) & note(60), {})
+  it "should arrange sections" do
+    section(note(67) & note(60), {}).should == Section.new(note(67) & note(60), {})
   end
   
   it "should create the empty arrangement" do
