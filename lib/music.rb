@@ -77,7 +77,12 @@ representation, which is subject to change.
   
   # Arrange a note.
   def note(pit, dur = 1, attrs = {})
-    Note.new(pit, dur, attrs)
+    case pit
+      when Enumerable
+        pit.map { |p| note(p, dur, attrs) }
+      else
+        Note.new(pit, dur, attrs)
+    end
   end
   alias n note
   
@@ -107,12 +112,12 @@ them into a new Score.
 =end
   
   # Compose a list of arrangements sequentially.
-  def seq(*ms)
-    ms.inject { |a, b| a & b }
+  def seq(*args)
+    args[0].is_a?(Array) ? seq(*args[0]) : args.inject(&:&)
   end
   
   # Compose a list of arrangements in parallel.
-  def par(*ms)
-    ms.inject { |a, b| a | b }
+  def par(*args)
+    args[0].is_a?(Array) ? par(*args[0]) : args.inject(&:|)
   end
 end
