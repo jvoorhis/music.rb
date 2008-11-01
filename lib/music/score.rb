@@ -10,7 +10,7 @@ module Music
     class Base
       include Temporal
       
-      # Return the empty MusicObject.
+      # Return the empty Score.
       def self.none; rest(0) end
       def none; self.class.none end
       
@@ -57,7 +57,7 @@ module Music
         map { |a| a.transpose(hs) }
       end
       
-      # Test for equivalence. Two MusicObject sequences are _equivalent_ if they
+      # Test for equivalence. Two Scores are _equivalent_ if they
       # produce idential Timelines when interpreted.
       def ===(mus)
         self.to_timeline == mus.to_timeline
@@ -176,39 +176,39 @@ module Music
     
     class Section < Base
       extend Forwardable
-      def_delegators :@music, :duration
-      attr_reader :music, :attributes
+      def_delegators :@score, :duration
+      attr_reader :score, :attributes
       
-      def initialize(music, attributes = {})
-        @music, @attributes = music, attributes
+      def initialize(score, attributes = {})
+        @score, @attributes = score, attributes
       end
       
       def ==(other)
         case other
-          when Section: music == other.music
+          when Section: score == other.score
           else false
         end
       end
       
       def map(&block)
-        self.class.new(music.map(&block), attributes)
+        self.class.new(score.map(&block), attributes)
       end
       
       def take(d)
-        self.class.new(music.take(d), attributes)
+        self.class.new(score.take(d), attributes)
       end
       
       def drop(d)
-        self.class.new(music.drop(d), attributes)
+        self.class.new(score.drop(d), attributes)
       end
       
       def reverse
-        self.class.new(music.reverse, attributes)
+        self.class.new(score.reverse, attributes)
       end
       
       def eval(interpreter, c0)
         c1 = c0.push(attributes)
-        m  = music.eval(interpreter, c1)
+        m  = score.eval(interpreter, c1)
         interpreter.eval_section(m, c0)
       end
     end

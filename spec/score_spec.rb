@@ -56,7 +56,7 @@ shared_examples_for "all scores" do
 end
 
 describe Score::Base do
-  it "should return the empty MusicObject" do
+  it "should return the empty Score" do
     Score::Base.none.should == Rest.new(0)
   end
 end
@@ -138,8 +138,8 @@ describe Section do
   
   it_should_behave_like "all scores"
   
-  it "wraps a MusicObject" do
-    @object.music.should == @expr
+  it "wraps a Score" do
+    @object.score.should == @expr
   end
   
   it "has a duration" do
@@ -171,7 +171,7 @@ describe Section do
   
   it "can be mapped" do
     @object.map { |n| n.transpose(7) }.should ==
-        section( @object.music.transpose(7), @object.attributes )
+        section( @object.score.transpose(7), @object.attributes )
   end
 end
 
