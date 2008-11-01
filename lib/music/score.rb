@@ -266,8 +266,8 @@ module Music
       
       def transpose(interval) self end
       
-      def eval(interpreter, c)
-        interpreter.eval_rest(self, c)
+      def eval(interpreter, context)
+        interpreter.eval_rest(self, context)
       end
       
       def update(name, val)
@@ -277,7 +277,7 @@ module Music
       end
     end
     
-    # A note has a steady pitch and a duration.
+    # A note has a pitch and a duration.
     class Note < ScoreObject
       attr_reader :attributes
       
@@ -297,22 +297,23 @@ module Music
         update(:pitch, pitch + interval)
       end
       
-      def eval(interpreter, c)
-        n1 = inherit(c.attributes)
-        interpreter.eval_note(n1, c)
+      def eval(interpreter, context)
+        n1, c1 = inherit(context)
+        interpreter.eval_note(n1, c1)
       end
       
       def update(name, val)
-        a = @attributes.merge(name => val)
+        a = attributes.merge(name => val)
         p, d = a.values_at(:pitch, :duration)
         self.class.new(p, d, a)
       end
       
-      def inherit(attrs)
-        a = attrs.merge(@attributes)
-        p, d = a.values_at(:pitch, :duration)
-        self.class.new(p, d, a)
-      end
+      private
+        def inherit(context)
+          c1 = context.accept(attributes)
+          p1, d1 = c1.attributes.values_at(:pitch, :duration)
+          [self.class.new(p1, d1, c1.attributes), c1]
+        end
     end
   end
 end

@@ -26,13 +26,22 @@ module Music
         @time, @attributes = time, attrs
       end
       
+      def [](name) attributes[name] end
+      
       def advance(dur)
         self.class.new(time + dur, attributes)
       end
       
       def push(a0)
-        a1 = @attributes.merge(a0)
+        a1 = attributes.merge(a0)
         self.class.new(time, a1)
+      end
+      
+      def accept(attrs)
+        inherited = push(attributes.merge(attrs))
+        push(inherited.attributes.inject({}) do |hsh, (name, val)|
+          hsh.merge(name => val.attr_eval(inherited))
+        end)
       end
     end
   end

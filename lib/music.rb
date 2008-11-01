@@ -120,4 +120,23 @@ them into a new Score.
   def par(*args)
     args[0].is_a?(Array) ? par(*args[0]) : args.inject(&:|)
   end
+  
+=begin
+
+Attribute generators.
+
+Attribute generators are functions which are granted access to the context
+under which a score is interpreted.
+
+=end
+  
+  # Generate an attribute value from the context.
+  def gen(&fn)
+    lambda { |context| fn[context] }
+  end
+	
+  # Generate an attribute value from the current time.
+  def env(&fn)
+    gen { |context| fn[context.time] }
+  end
 end
