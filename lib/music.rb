@@ -21,6 +21,7 @@ require 'music/pitch'
 require 'music/key'
 require 'music/interpreter'
 require 'music/score'
+require 'music/gens'
 require 'music/timeline'
 require 'music/smf_writer'
 
@@ -131,12 +132,10 @@ under which a score is interpreted.
 =end
   
   # Generate an attribute value from the context.
-  def gen(&fn)
-    lambda { |context| fn[context] }
-  end
+  def gen(&fn) Gen.new(&fn) end
 	
-  # Generate an attribute value from the current time.
-  def env(&fn)
-    gen { |context| fn[context.time] }
-  end
+  # Transform a given attribute value.
+  def tr(&fn) Tr.new(&fn) end
+  
+  def env(&fn) Env.new(&fn) end
 end

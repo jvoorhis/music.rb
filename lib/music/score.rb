@@ -207,7 +207,7 @@ module Music
       end
       
       def eval(interpreter, c0)
-        c1 = c0.push(attributes)
+        c1 = c0.push(attributes.merge(:section_start => c0.time, :section_duration => duration))
         m  = score.eval(interpreter, c1)
         interpreter.eval_section(m, c0)
       end
