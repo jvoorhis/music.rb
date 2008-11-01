@@ -20,7 +20,7 @@ require 'music/timeline'
 require 'music/pretty_printer'
 
 module Music
-  module Arrangement
+  module Score
     
     class Base
       include Temporal

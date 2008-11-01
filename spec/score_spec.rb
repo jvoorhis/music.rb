@@ -32,7 +32,7 @@ shared_examples_for "all arrangements" do
     end
     
     it "returns the unit when given 0" do
-      (@object * 0).should == Arrangement::Base.none
+      (@object * 0).should == Score::Base.none
     end
     
     it "requires a non-negative Integer" do
@@ -57,9 +57,9 @@ shared_examples_for "all arrangements" do
   end
 end
 
-describe Arrangement::Base do
+describe Score::Base do
   it "should return the empty MusicObject" do
-    Arrangement::Base.none.should == Item.new( Silence.new(0) )
+    Score::Base.none.should == Item.new( Silence.new(0) )
   end
 end
 

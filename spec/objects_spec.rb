@@ -41,7 +41,7 @@ describe Note do
       Note.new(60,1.quo(1))
     ].each { |val| val.should == @object }
     [ Silence.new(1),
-      Arrangement::Base.allocate
+      Score::Base.allocate
     ].each { |val| val.should_not == @object }
   end
 end

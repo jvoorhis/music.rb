@@ -20,7 +20,7 @@ require 'music/duration'
 require 'music/pitch'
 require 'music/key'
 require 'music/objects'
-require 'music/arrangement'
+require 'music/score'
 require 'music/interpreter'
 require 'music/timeline'
 require 'music/smf_writer'
@@ -28,7 +28,7 @@ require 'music/smf_writer'
 module Music
   include Duration
   include Objects
-  include Arrangement
+  include Score
   
   module_function
   
