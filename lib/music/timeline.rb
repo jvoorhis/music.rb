@@ -23,13 +23,17 @@ module Music
     include Enumerable
     
     attr_reader :events
-    def_delegators :@events, :[]
+    
     def self.[](*events) new(events.flatten) end
     
     def initialize(events) @events = events end
     
     def merge(other)
       self.class.new((events + other.events).sort)
+    end
+    
+    def [](i)
+      if event = @events[i] then event.object end
     end
     
     def +(other)

@@ -163,10 +163,9 @@ describe Section do
   end
   
   it "should provide inherited attributes when interpreted" do
-    timeline = TimelineInterpreter.eval(@object)
+    timeline = @object.to_timeline
     timeline.all? { |e| e.attributes[:slur] }.should be_true
-    
-    timeline[0].object.attributes[:accented].should be_true
+    timeline[0].attributes[:accented].should be_true
   end
   
   it "can be mapped" do
