@@ -36,9 +36,9 @@ shared_examples_for "all attributes implementations" do
   end
 end
 
-describe Silence do
+describe Rest do
   before(:all) do
-    @object = Silence.new(1, :dynamic => :mf)
+    @object = Rest.new(1, :dynamic => :mf)
   end
   it_should_behave_like "all attributes implementations"
 end

@@ -1,8 +1,8 @@
 require File.join( File.dirname(__FILE__), 'spec_helper')
 
-describe Silence do
+describe Rest do
   before(:all) do
-    @object = Silence.new(1, :fermata => true)
+    @object = Rest.new(1, :fermata => true)
   end
   
   it "should have a duration" do
@@ -40,7 +40,7 @@ describe Note do
       Note.new(60,1.0),
       Note.new(60,1.quo(1))
     ].each { |val| val.should == @object }
-    [ Silence.new(1),
+    [ Rest.new(1),
       Score::Base.allocate
     ].each { |val| val.should_not == @object }
   end

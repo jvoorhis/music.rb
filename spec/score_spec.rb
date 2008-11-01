@@ -2,15 +2,15 @@ require File.join( File.dirname(__FILE__), 'spec_helper')
 
 shared_examples_for "all arrangements" do
   it "can be composed sequentially" do
-    seq = Seq.new(@object, silence(0))
-    ( @object & silence(0) ).should  == seq
-    @object.seq( silence(0) ).should == seq
+    seq = Seq.new(@object, rest(0))
+    ( @object & rest(0) ).should  == seq
+    @object.seq( rest(0) ).should == seq
   end
   
   it "can be composed in parallel" do
-    par = Par.new(@object, silence(0))
-    ( @object | silence(0) ).should  == par
-    @object.par( silence(0) ).should == par
+    par = Par.new(@object, rest(0))
+    ( @object | rest(0) ).should  == par
+    @object.par( rest(0) ).should == par
   end
   
   it "preserves its structure when mapped with the identity function" do
@@ -42,8 +42,8 @@ shared_examples_for "all arrangements" do
     end
   end
     
-  it "can be delayed with silence" do
-    @object.delay(4).should == Seq.new(silence(4), @object)
+  it "can be delayed with a rest" do
+    @object.delay(4).should == Seq.new(rest(4), @object)
   end
   
   describe "when reversed" do
@@ -59,13 +59,13 @@ end
 
 describe Score::Base do
   it "should return the empty MusicObject" do
-    Score::Base.none.should == Item.new( Silence.new(0) )
+    Score::Base.none.should == Item.new( Rest.new(0) )
   end
 end
 
 describe Seq do
   before(:all) do
-    @object = ((@left = note(60, 2)) & (@right = silence(3)))
+    @object = ((@left = note(60, 2)) & (@right = rest(3)))
   end
   
   it_should_behave_like "all arrangements"
@@ -99,7 +99,7 @@ end
 
 describe Par do
   before(:all) do
-    @object = ((@top = note(60, 2)) | (@bottom = silence(3)))
+    @object = ((@top = note(60, 2)) | (@bottom = rest(3)))
   end
   
   it_should_behave_like "all arrangements"
@@ -202,7 +202,7 @@ end
 describe "Seq of reference duration" do
   before(:all) do
     @duration = 4
-    @object = (@left = silence(2) & @right = note(60, 2))
+    @object = (@left = rest(2) & @right = note(60, 2))
   end
   
   it_should_behave_like "all arrangements of reference duration"
@@ -235,10 +235,10 @@ describe "Item of reference duration" do
   it_should_behave_like "all arrangements of reference duration"
 end
 
-describe "Silence of reference duration" do
+describe "Rest of reference duration" do
   before(:all) do
     @duration = 4
-    @object = silence(4)
+    @object = rest(4)
   end
   
   it_should_behave_like "all arrangements of reference duration"
@@ -250,9 +250,9 @@ describe "helper functions" do
     note(60, 2).should == Item.new(Note.new(60, 2))
   end
   
-  it "should arrange silence" do
-    rest().should  == Item.new(Silence.new(1))
-    rest(2).should == Item.new(Silence.new(2))
+  it "should arrange rests" do
+    rest().should  == Item.new(Rest.new(1))
+    rest(2).should == Item.new(Rest.new(2))
   end
   
   it "should arrange sections" do
@@ -260,7 +260,7 @@ describe "helper functions" do
   end
   
   it "should create the empty arrangement" do
-    none().should == silence(0)
+    none().should == rest(0)
   end
   
   it "should compose lists of arrangements sequentially" do

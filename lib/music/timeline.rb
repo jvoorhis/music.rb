@@ -68,7 +68,7 @@ module Music
       Timeline.new([Event.new(context.time, note)])
     end
     
-    def eval_silence(silence, context)
+    def eval_rest(rest, context)
       Timeline.new([])
     end
   end

@@ -10,16 +10,16 @@ module Music
       "(#{top}) | (#{bottom})"
     end
     
-    def eval_group(arrangement, context)
-      "group(#{arrangement})"
+    def eval_section(arrangement, context)
+      "section(#{arrangement})"
     end
     
     def eval_note(note, context)
       "note(#{note.pitch}, #{note.duration})"
     end
     
-    def eval_silence(silence, context)
-      "silence(#{silence.duration})"
+    def eval_rest(rest, context)
+      "rest(#{rest.duration})"
     end
   end
 end

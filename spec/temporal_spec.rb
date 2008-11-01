@@ -67,7 +67,7 @@ end
 
 describe Seq do
   before(:all) do
-    @object = (@left = silence(RD/2) & @right = note(60, RD/2))
+    @object = (@left = rest(RD/2) & @right = note(60, RD/2))
   end
   it_should_behave_like "all temporal objects"
 end
@@ -95,9 +95,9 @@ describe Note do
   it_should_behave_like "all temporal objects"
 end
 
-describe Silence do
+describe Rest do
   before(:all) do
-    @object = silence(RD)
+    @object = rest(RD)
   end
   it_should_behave_like "all temporal objects"
 end

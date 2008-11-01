@@ -26,7 +26,7 @@ module Music
       include Temporal
       
       # Return the empty MusicObject.
-      def self.none; silence(0) end
+      def self.none; rest(0) end
       def none; self.class.none end
       
       # Sequential composition.
@@ -65,9 +65,9 @@ module Music
       end
       alias * repeat
       
-      # Delay a sequence by composing it with Silence.
+      # Delay a sequence by composing it with a Rest.
       def delay(dur)
-        silence(dur) & self
+        rest(dur) & self
       end
       
       def transpose(hs)

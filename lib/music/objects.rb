@@ -7,7 +7,7 @@ module Music
   module Objects
     
     # The identity under parallel and sequential composition.
-    def none; Silence.new(0) end
+    def none; Rest.new(0) end
     module_function :none
     
     class Base
@@ -25,7 +25,7 @@ module Music
     end
     
     # Remain silent for the duration.
-    class Silence < Base
+    class Rest < Base
       attr_reader :attributes
       
       def initialize(duration, attributes = {})
@@ -34,7 +34,7 @@ module Music
       
       def ==(other)
         case other
-          when Silence: duration == other.duration
+          when Rest: duration == other.duration
           else false
         end
       end
@@ -42,7 +42,7 @@ module Music
       def transpose(interval) self end
       
       def eval(interpreter, c)
-        interpreter.eval_silence(self, c)
+        interpreter.eval_rest(self, c)
       end
       
       def take(time)
@@ -73,7 +73,6 @@ module Music
         self.class.new(d, a)
       end
     end
-    Rest = Silence unless defined?(Rest) # Type alias for convenience
     
     # A note has a steady pitch and a duration.
     class Note < Base

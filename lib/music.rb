@@ -69,7 +69,7 @@ representation is polymorphic.
 
 Music constructors.
 
-A piece of music may be constructed by calling note(), silence(), rest() and
+A piece of music may be constructed by calling note(), rest(), rest() and
 group(). It is recommended that you use these methods rather than instantiating
 the items directly, e.g. via Music::Objects::Note.new. These functions are both
 more convenient, and decouple your composition from the underlying
@@ -83,11 +83,11 @@ representation, which is subject to change.
   end
   alias n note
   
-  # Arrange silence.
-  def silence(dur = 1, attrs = {})
-    Item.new(Silence.new(dur, attrs))
+  # Arrange a Rest.
+  def rest(dur = 1, attrs = {})
+    Item.new(Rest.new(dur, attrs))
   end
-  alias rest silence
+  alias r rest
   
   # Arrange a group.
   def section(mus, attrs)
@@ -97,7 +97,7 @@ representation, which is subject to change.
   
   # A blank arrangement of zero length. This is the identity for parallel
   # and serial composition.
-  def none; silence(0) end
+  def none; rest(0) end
   
 =begin
 
