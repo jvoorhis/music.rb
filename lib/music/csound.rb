@@ -1,32 +1,22 @@
 module Music
   module Csound
     
-    def gen(n, time, size)
-    end
-    module_function :gen
-    
     class ScoreWriter
-      attr_reader :instruments, :functions, :path
+      attr_reader :instruments, :path
       
       def initialize(options = {})
         @path        = options[:path]
-        @functions   = options.fetch(:functions, {})
         @instruments = options.fetch(:instruments, {})
       end
       
       def write(timeline_or_score)
         timeline = timeline_or_score.to_timeline
         open(path, 'w') do |f|
-          write_functions(f)
           write_instruments(f, timeline)
         end
       end
       
       private
-        def write_functions(file)
-          
-        end
-        
         def write_instruments(file, timeline)
           timeline.each_with_time do |obj, time|
             inst = obj.read(:instrument)
@@ -75,9 +65,6 @@ if __FILE__ == $0
   score = group [n(c4), n(e4), n(g4), n(c5)].inject(&:&), :instrument => 1
   writer = ScoreWriter.new(
     :path => "score.sco",
-    :functions => {
-      1 => gen(1, 2, 3)
-    },
     :instruments => {
       1 => [:pitch],
     }
