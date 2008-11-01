@@ -3,14 +3,12 @@ require File.join( File.dirname(__FILE__), 'spec_helper')
 shared_examples_for "all arrangements" do
   it "can be composed sequentially" do
     seq = Seq.new(@object, rest(0))
-    ( @object & rest(0) ).should  == seq
-    @object.seq( rest(0) ).should == seq
+    (@object & rest(0)).should  == seq
   end
   
   it "can be composed in parallel" do
     par = Par.new(@object, rest(0))
-    ( @object | rest(0) ).should  == par
-    @object.par( rest(0) ).should == par
+    (@object | rest(0)).should  == par
   end
   
   it "preserves its structure when mapped with the identity function" do
@@ -83,8 +81,8 @@ describe Seq do
   end
   
   it "can be compared" do
-    @left.seq(@right).should == @object
-    @right.seq(@left).should_not == @object
+    (@left & @right).should == @object
+    (@right & @left).should_not == @object
   end
   
   it "can be transposed" do
@@ -117,8 +115,8 @@ describe Par do
   end
   
   it "can be compared" do
-    @top.par(@bottom).should == @object
-    @bottom.par(@top).should_not == @object
+    (@top | @bottom).should == @object
+    (@bottom | @top).should_not == @object
   end
   
   it "can be transposed" do
@@ -264,11 +262,11 @@ describe "helper functions" do
   end
   
   it "should compose lists of arrangements sequentially" do
-    line(note(60), note(64), note(67)).should == note(60) & note(64) & note(67)
+    seq(note(60), note(64), note(67)).should == note(60) & note(64) & note(67)
   end
   
   it "should compose lists of arrangements in parallel" do
-    chord(note(60), note(64), note(67)).should == note(60) | note(64) | note(67)
+    par(note(60), note(64), note(67)).should == note(60) | note(64) | note(67)
   end
 end
   

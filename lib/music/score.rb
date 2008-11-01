@@ -30,16 +30,14 @@ module Music
       def none; self.class.none end
       
       # Sequential composition.
-      def seq(other)
+      def &(other)
         Seq.new(self, other)
       end
-      alias & seq
       
       # Parallel (concurrent) composition.
-      def par(other)
+      def |(other)
         Par.new(self, other)
       end
-      alias | par
       
       # Parallel composition. The duration of the longer sequence is truncated
       # to match the duration of the shorter one.

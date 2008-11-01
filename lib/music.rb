@@ -109,12 +109,12 @@ them into a new Arrangement.
 =end
   
   # Compose a list of arrangements sequentially.
-  def line(*ms)
+  def seq(*ms)
     ms.inject { |a, b| a & b }
   end
   
   # Compose a list of arrangements in parallel.
-  def chord(*ms)
+  def par(*ms)
     ms.inject { |a, b| a | b }
   end
 end
