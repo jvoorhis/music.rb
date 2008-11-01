@@ -1,6 +1,6 @@
 require File.join( File.dirname(__FILE__), 'spec_helper')
 
-shared_examples_for "all arrangements" do
+shared_examples_for "all scores" do
   it "can be composed sequentially" do
     seq = Seq.new(@object, rest(0))
     (@object & rest(0)).should  == seq
@@ -66,7 +66,7 @@ describe Seq do
     @object = ((@left = note(60, 2)) & (@right = rest(3)))
   end
   
-  it_should_behave_like "all arrangements"
+  it_should_behave_like "all scores"
   
   it "has a left value" do
     @object.left.should == @left
@@ -100,7 +100,7 @@ describe Par do
     @object = ((@top = note(60, 2)) | (@bottom = rest(3)))
   end
   
-  it_should_behave_like "all arrangements"
+  it_should_behave_like "all scores"
   
   it "has a top value" do
     @object.top.should === @top
@@ -136,7 +136,7 @@ describe Section do
     @attrs  =   { :slur => true, :accented => true })
   end
   
-  it_should_behave_like "all arrangements"
+  it_should_behave_like "all scores"
   
   it "wraps a MusicObject" do
     @object.music.should == @music
@@ -190,7 +190,7 @@ describe Item do
   end
 end
 
-shared_examples_for "all arrangements of reference duration" do
+shared_examples_for "all scores of reference duration" do
   it "will have a duration equal to the shortest tree under truncating parallel composition" do
     (@object / rest(@duration * 2)).duration.should == @duration
     (@object / rest(@duration / 2)).duration.should == @duration / 2
@@ -203,7 +203,7 @@ describe "Seq of reference duration" do
     @object = (@left = rest(2) & @right = note(60, 2))
   end
   
-  it_should_behave_like "all arrangements of reference duration"
+  it_should_behave_like "all scores of reference duration"
 end
 
 describe "Par of reference duration" do
@@ -212,7 +212,7 @@ describe "Par of reference duration" do
     @object = ((@left = note(64, 2) & note(64, 2)) | (@right = note(60, 4)))
   end
   
-  it_should_behave_like "all arrangements of reference duration"
+  it_should_behave_like "all scores of reference duration"
 end
 
 describe "Section of reference duration" do
@@ -221,7 +221,7 @@ describe "Section of reference duration" do
     @object = section( note(64, 2) & note(64, 2) | note(60, 4), {} )
   end
   
-  it_should_behave_like "all arrangements of reference duration"
+  it_should_behave_like "all scores of reference duration"
 end
 
 describe "Item of reference duration" do
@@ -230,7 +230,7 @@ describe "Item of reference duration" do
     @object = note(60, 4)
   end
   
-  it_should_behave_like "all arrangements of reference duration"
+  it_should_behave_like "all scores of reference duration"
 end
 
 describe "Rest of reference duration" do
@@ -239,7 +239,7 @@ describe "Rest of reference duration" do
     @object = rest(4)
   end
   
-  it_should_behave_like "all arrangements of reference duration"
+  it_should_behave_like "all scores of reference duration"
 end
 
 describe "helper functions" do
@@ -257,16 +257,16 @@ describe "helper functions" do
     section(note(67) & note(60), {}).should == Section.new(note(67) & note(60), {})
   end
   
-  it "should create the empty arrangement" do
+  it "should create the empty score" do
     none().should == rest(0)
   end
   
-  it "should compose lists of arrangements sequentially" do
+  it "should compose lists of scores sequentially" do
     seq(note(60), note(64), note(67)).should == note(60) & note(64) & note(67)
   end
   
-  it "should compose lists of arrangements in parallel" do
+  it "should compose lists of scores in parallel" do
     par(note(60), note(64), note(67)).should == note(60) | note(64) | note(67)
   end
 end
-  
+
