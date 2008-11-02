@@ -74,11 +74,12 @@ module Music
     end
     
     class Seq < Base
-      attr_reader :left, :right, :duration
+      attr_reader :left, :right, :duration, :final_onset
       
       def initialize(left, right)
         @left, @right = left, right
         @duration = @left.duration + @right.duration
+        @final_onset = @left.duration
       end
       
       def ==(other)
@@ -124,7 +125,7 @@ module Music
     end
     
     class Par < Base
-      attr_reader :top, :bottom, :duration
+      attr_reader :top, :bottom, :duration, :final_onset
       
       def initialize(top, bottom)
         dt = top.duration
@@ -141,6 +142,7 @@ module Music
         end
         
         @duration = [@top.duration, @bottom.duration].max
+        @final_onset = [@top.final_onset, @bottom.final_onset].max
       end
       
       def ==(other)
@@ -176,8 +178,8 @@ module Music
     
     class Group < Base
       extend Forwardable
-      def_delegators :@score, :duration
       attr_reader :score, :attributes
+      def_delegators :@score, :duration, :final_onset
       
       def initialize(score, attributes = {})
         @score, @attributes = score, attributes
@@ -207,7 +209,7 @@ module Music
       end
       
       def eval(interpreter, c0)
-        c1 = c0.push(Scope.new(c0.time, duration, attributes))
+        c1 = c0.push(Scope.new(c0.time, final_onset, attributes))
         m  = score.eval(interpreter, c1)
         interpreter.eval_group(m, c0)
       end
@@ -216,6 +218,8 @@ module Music
     class ScoreObject < Base
       include Attributes
       include Temporal
+      
+      def final_onset; 0 end
       
       def map; yield self end
       

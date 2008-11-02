@@ -59,7 +59,7 @@ module Music
       end
       
       def accept(attributes)
-        push(Scope.new(top.offset, top.duration, attributes))
+        push(Scope.new(top.offset, top.final_onset, attributes))
       end
       
       private
@@ -68,14 +68,14 @@ module Music
   end
   
   class Scope
-    attr_reader :offset, :duration, :attributes
+    attr_reader :offset, :final_onset, :attributes
     
-    def initialize(offset, duration, attributes)
-      @offset, @duration, @attributes = offset, duration, attributes
+    def initialize(offset, final_onset, attributes)
+      @offset, @final_onset, @attributes = offset, final_onset, attributes
     end
     
     def phase(offset)
-      (offset - self.offset) / self.duration.to_f
+      (offset - self.offset) / self.final_onset.to_f
     end
   end
 end

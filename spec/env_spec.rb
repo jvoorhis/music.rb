@@ -3,26 +3,24 @@ require File.join( File.dirname(__FILE__), 'spec_helper')
 describe Env do
   def cresc(factor, score)
     group(score,
-          :velocity => env { |velocity, phase|
-            multiplier = (factor - 1.0) * (1.0 + phase)
-            (velocity * multiplier).to_i })
+      :velocity => env { |v0, ph|
+         v1 = (v0 + ph * ((v0 * factor) - v0)).round # Linear interpolation
+         v1.clip(0..127) })
   end
   
   it "can be used to implement various transforms" do
     score = cresc(2,
-              seq(n([c4, e4, g4], 1, :velocity => 64)))
+              seqn([c4, e4, g4], 1, :velocity => 64))
     timeline = score.to_timeline
-    timeline[0].velocity.should == 64
-    timeline[1].velocity.should == 85
-    timeline[2].velocity.should == 106
+    timeline.map(&:velocity).should == [64, 96, 127]
   end
   
   it "can be nested" do
-    score = cresc(2,
+    score = cresc(1.5,
               seqn([c4, e4, g4], 1, :velocity => 40) &
-              cresc(2,
+              cresc(1.5,
                 seqn([c4, e4, g4], 1, :velocity => 40)))
     timeline = score.to_timeline
-    timeline.map(&:velocity).should == [40, 46, 53, 60, 88, 121]
+    timeline.map(&:velocity).should == [40, 47, 53, 60, 83, 110]
   end
 end
