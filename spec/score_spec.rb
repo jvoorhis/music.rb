@@ -129,9 +129,9 @@ describe Par do
   end
 end
 
-describe Section do
+describe Group do
   before(:all) do
-    @object = section(
+    @object = group(
     @expr   =   note(60, 2),
     @attrs  =   { :slur => true, :accented => true })
   end
@@ -151,15 +151,15 @@ describe Section do
   end
   
   it "can be compared" do
-    Section.new(@expr, @attrs).should == @object
+    Group.new(@expr, @attrs).should == @object
   end
   
   it "can be compared independently of its attributes" do
-    Section.new(@expr).should == @object
+    Group.new(@expr).should == @object
   end
   
   it "can be transposed" do
-    @object.transpose(5).should == Section.new(@expr.transpose(5), @attrs)
+    @object.transpose(5).should == Group.new(@expr.transpose(5), @attrs)
   end
   
   it "should provide inherited attributes when interpreted" do
@@ -170,7 +170,7 @@ describe Section do
   
   it "can be mapped" do
     @object.map { |n| n.transpose(7) }.should ==
-        section( @object.score.transpose(7), @object.attributes )
+        group( @object.score.transpose(7), @object.attributes )
   end
 end
 
@@ -259,10 +259,10 @@ describe "Par of reference duration" do
   it_should_behave_like "all scores of reference duration"
 end
 
-describe "Section of reference duration" do
+describe "Group of reference duration" do
   before(:all) do
     @duration = 4
-    @object = section( note(64, 2) & note(64, 2) | note(60, 4), {} )
+    @object = group( note(64, 2) & note(64, 2) | note(60, 4), {} )
   end
   
   it_should_behave_like "all scores of reference duration"
@@ -297,8 +297,8 @@ describe "helper functions" do
     rest(2).should == Rest.new(2)
   end
   
-  it "should arrange sections" do
-    section(note(67) & note(60), {}).should == Section.new(note(67) & note(60), {})
+  it "should arrange groups" do
+    group(note(67) & note(60), {}).should == Group.new(note(67) & note(60), {})
   end
   
   it "should create the empty score" do

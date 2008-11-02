@@ -174,7 +174,7 @@ module Music
       end
     end
     
-    class Section < Base
+    class Group < Base
       extend Forwardable
       def_delegators :@score, :duration
       attr_reader :score, :attributes
@@ -185,7 +185,7 @@ module Music
       
       def ==(other)
         case other
-          when Section: score == other.score
+          when Group: score == other.score
           else false
         end
       end
@@ -209,7 +209,7 @@ module Music
       def eval(interpreter, c0)
         c1 = c0.push(Scope.new(c0.time, duration, attributes))
         m  = score.eval(interpreter, c1)
-        interpreter.eval_section(m, c0)
+        interpreter.eval_group(m, c0)
       end
     end
     

@@ -10,8 +10,8 @@ module Music
       "(#{top}) | (#{bottom})"
     end
     
-    def eval_section(arrangement, context)
-      "section(#{arrangement})"
+    def eval_group(arrangement, context)
+      "group(#{arrangement})"
     end
     
     def eval_note(note, context)
