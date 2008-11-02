@@ -40,7 +40,7 @@ module Music
               a1 = scope.attributes[key]
               a2 = as_[key]
               as_.merge key => case a1
-                when Env: a1.apply(a2, phase)
+                when Env: a1.apply(a2, scope.phase(time))
                 else a1 || a2
               end
             end
@@ -49,10 +49,6 @@ module Music
       end
       
       def [](key) attributes[key] end
-      
-      def phase
-        (@time - top.offset) / top.duration.to_f
-      end
       
       def advance(dur)
         self.class.new(time + dur, @scopes)
@@ -76,6 +72,10 @@ module Music
     
     def initialize(offset, duration, attributes)
       @offset, @duration, @attributes = offset, duration, attributes
+    end
+    
+    def phase(offset)
+      (offset - self.offset) / self.duration.to_f
     end
   end
 end
