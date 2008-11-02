@@ -117,11 +117,18 @@ them into a new Score.
     args[0].is_a?(Array) ? seq(*args[0]) : args.inject(&:&)
   end
   
+  def seqn(pit, dur = 1, attrs = {})
+    seq(n(pit, dur, attrs))
+  end
+  
   # Compose a list of arrangements in parallel.
   def par(*args)
     args[0].is_a?(Array) ? par(*args[0]) : args.inject(&:|)
   end
   
+  def parn(pit, dur = 1, attrs = {})
+    par(n(pit, dur, attrs))
+  end
 =begin
 
 Attribute generators.
@@ -130,12 +137,6 @@ Attribute generators are functions which are granted access to the context
 under which a score is interpreted.
 
 =end
-  
-  # Generate an attribute value from the context.
-  def gen(&fn) Gen.new(&fn) end
-	
-  # Transform a given attribute value.
-  def tr(&fn) Tr.new(&fn) end
   
   def env(&fn) Env.new(&fn) end
 end
