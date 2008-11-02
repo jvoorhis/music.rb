@@ -2,10 +2,10 @@ require File.join( File.dirname(__FILE__), 'spec_helper')
 
 describe Env do
   def cresc(factor, score)
-    grp(score, :velocity => env { |vel, ph|
-        multiplier = (factor - 1.0) * (1.0 + ph)
-        (vel * multiplier).to_i
-      })
+    group(score,
+          :velocity => env { |velocity, phase|
+            multiplier = (factor - 1.0) * (1.0 + phase)
+            (velocity * multiplier).to_i })
   end
   
   it "can be used to implement various transforms" do
