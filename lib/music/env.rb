@@ -4,8 +4,8 @@ module Music
       @fn = fn
     end
     
-    def apply(name, val, context)
-      @fn.call(val, context.phase)
+    def apply(val, phase)
+      @fn.call(val, phase)
     end
   end
 end

@@ -6,7 +6,8 @@ module Music
         new.eval(music)
       end
       
-      def eval(music, context = Context.default(music.duration))
+      def eval(music, context = nil)
+        context ||= Context.init( Scope.new(0, music.duration, {}) )
         music.eval(self, context)
       end
       
@@ -18,43 +19,63 @@ module Music
     end
     
     class Context
-      attr_reader :time, :attributes
+      attr_reader :time
       
-      def self.default(duration)
-        new(0, { :section_start => 0, :section_duration => duration})
+      def self.init(scope)
+        new(0, [scope])
       end
       
-      def initialize(time, attrs)
-        @time, @attributes = time, attrs
+      def initialize(time, scopes)
+        @time, @scopes = time, scopes
       end
       
-      def [](name) attributes[name] end
+      def keys
+        @keys ||= @scopes.inject([]) { |ns, s| ns | s.attributes.keys }
+      end
+      
+      def attributes
+        @attributes ||= begin
+          @scopes.inject({}) do |as, scope|
+            keys.inject(as) do |as_, key|
+              a1 = scope.attributes[key]
+              a2 = as_[key]
+              as_.merge key => case a1
+                when Env: a1.apply(a2, phase)
+                else a1 || a2
+              end
+            end
+          end
+        end
+      end
+      
+      def [](key) attributes[key] end
       
       def phase
-        (@time - @attributes[:section_start]) / @attributes[:section_duration].to_f
+        (@time - top.offset) / top.duration.to_f
       end
       
       def advance(dur)
-        self.class.new(time + dur, attributes)
+        self.class.new(time + dur, @scopes)
       end
       
-      def push(a0)
-        a1 = attributes.merge(a0)
-        self.class.new(time, a1)
+      def push(scope)
+        self.class.new(time, [scope, *@scopes])
       end
       
-      def accept(a0)
-        names = a0.keys | self.attributes.keys
-        push(names.inject({}) { |a1, name|
-          a1.merge name => case new = self.attributes[name]
-            # If a0 yields a Gen, apply it
-            when Env: new.apply(name, a0[name], self)
-            # otherwise, inherit the attribute value from a0 if
-            # we haven't defined it
-            else self.attributes[name] || a0[name]
-          end
-        })
+      def accept(attributes)
+        push(Scope.new(top.offset, top.duration, attributes))
       end
+      
+      private
+        def top; @scopes.first end
+    end
+  end
+  
+  class Scope
+    attr_reader :offset, :duration, :attributes
+    
+    def initialize(offset, duration, attributes)
+      @offset, @duration, @attributes = offset, duration, attributes
     end
   end
 end
