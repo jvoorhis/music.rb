@@ -101,7 +101,7 @@ final = rh | lh
 final.transpose(12)
 end
 
-SMFWriter.new(:tempo => 80).
+SMFWriter.new(:tempo => 40).
   track(score, :name => 'Op. 20, No. 2').
   save('chopin-op28-no20')
 

@@ -8,8 +8,7 @@ module Music
     def initialize(options = {})
       @time  = MidiTime.new(options.fetch(:resolution, 480))
       @seq   = Sequence.new(1, @time.resolution)
-      @tempo = SetTempo.new(1, bpm_to_qn_per_usec(
-                                   options.fetch(:tempo, 2_000_000)))
+      @tempo = SetTempo.new(1, bpm_to_qn_per_usec(options[:tempo]))
     end
     
     def track(arrangement_or_timeline, options = {})
@@ -49,7 +48,7 @@ module Music
       end
       
       def bpm_to_qn_per_usec(bpm)
-        ((bpm/60.0) * 1_000_000).to_i
+        (60_000_000.0 / bpm).to_i
       end
   end
 end
