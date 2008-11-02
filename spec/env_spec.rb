@@ -10,16 +10,16 @@ describe Env do
   
   it "can be used to implement various transforms" do
     score = cresc(2,
-              seqn([c4, e4, g4], 1, :velocity => 64))
+              sn([c4, e4, g4], 1, :velocity => 64))
     timeline = score.to_timeline
     timeline.map(&:velocity).should == [64, 96, 127]
   end
   
   it "can be nested" do
     score = cresc(1.5,
-              seqn([c4, e4, g4], 1, :velocity => 40) &
+              sn([c4, e4, g4], 1, :velocity => 40) &
               cresc(1.5,
-                seqn([c4, e4, g4], 1, :velocity => 40)))
+                sn([c4, e4, g4], 1, :velocity => 40)))
     timeline = score.to_timeline
     timeline.map(&:velocity).should == [40, 47, 53, 60, 83, 110]
   end

@@ -287,30 +287,31 @@ describe "Rest of reference duration" do
 end
 
 describe "helper functions" do
-  it "should arrange notes" do
+  it "should construct notes" do
     note(60).should    == Note.new(60, 1)
     note(60, 2).should == Note.new(60, 2)
   end
   
-  it "should arrange rests" do
+  it "should construct rests" do
     rest().should  == Rest.new(1)
     rest(2).should == Rest.new(2)
   end
   
-  it "should arrange groups" do
+  it "should construct groups" do
     group(note(67) & note(60), {}).should == Group.new(note(67) & note(60), {})
   end
   
-  it "should create the empty score" do
+  it "should construct the empty score" do
     none().should == rest(0)
   end
   
   it "should compose lists of scores sequentially" do
-    seq(note(60), note(64), note(67)).should == note(60) & note(64) & note(67)
+    s(note(60), note(64), note(67)).should == note(60) & note(64) & note(67)
+    sn([60, 64, 67]).should == note(60) & note(64) & note(67)
   end
   
   it "should compose lists of scores in parallel" do
-    par(note(60), note(64), note(67)).should == note(60) | note(64) | note(67)
+    p(note(60), note(64), note(67)).should == note(60) | note(64) | note(67)
+    pn([60, 64, 67]).should == p(note(60), note(64), note(67))
   end
 end
-

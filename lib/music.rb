@@ -113,21 +113,21 @@ them into a new Score.
 =end
   
   # Compose a list of arrangements sequentially.
-  def seq(*args)
-    args[0].is_a?(Array) ? seq(*args[0]) : args.inject(&:&)
+  def s(*args)
+    args[0].is_a?(Array) ? s(*args[0]) : args.inject(&:&)
   end
   
-  def seqn(pit, dur = 1, attrs = {})
-    seq(n(pit, dur, attrs))
+  def sn(pit, dur = 1, attrs = {})
+    s(n(pit, dur, attrs))
   end
   
   # Compose a list of arrangements in parallel.
-  def par(*args)
-    args[0].is_a?(Array) ? par(*args[0]) : args.inject(&:|)
+  def p(*args)
+    args[0].is_a?(Array) ? p(*args[0]) : args.inject(&:|)
   end
   
-  def parn(pit, dur = 1, attrs = {})
-    par(n(pit, dur, attrs))
+  def pn(pit, dur = 1, attrs = {})
+    p(n(pit, dur, attrs))
   end
 =begin
 
