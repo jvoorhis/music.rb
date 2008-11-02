@@ -6,107 +6,99 @@ require 'music'
 
 include Music
 
-# Redefine chord to take a list of pitches to a chord of duration QN
-def chord(*args)
-  pitches, attributes = args.extract_options
-  duration = attributes.delete(:duration) || attributes.delete(:dur) || QN
-  par( n([pitches], duration, attributes) )
-end
-alias ch chord
-
 def score
 # mm 1
-rh = seq(ch(g2, c3, ef3, g3),
-         ch(af2, c3, ef3, af3),
-         par(ch(g2, b2), ch(ef3, g3, :dur => DEN) & ch(d3, f3, :dur => SN)),
-         ch(ef2, g2, c3, ef3))
-lh = seq(ch(c1, c2), ch(f0, f1), ch(g0, g1), ch(c1, g1, c2))
+rh = seq(parn([g2, c3, ef3, g3]),
+         parn([af2, c3, ef3, af3]),
+         par(parn([g2, b2]), parn([ef3, g3], DEN) & parn([d3, f3], SN)),
+         parn([ef2, g2, c3, ef3]))
+lh = seq(parn([c1, c2]), parn([f0, f1]), parn([g0, g1]), parn([c1, g1, c2]))
 
 # mm 2
-rh &= seq(ch(ef2, af2, c3, ef3),
-          ch(f2, af2, df3, f3),
-          (ch(df2, ef2, g2) | ch(c3, ef3, :dur => DEN) & ch(bf2, df3, :dur => SN)),
-          ch(c2, ef2, g2, c3))
-lh &= seq(ch(af1, af2), ch(df1, df2), ch(ef1, ef2), ch(af1, af2))
+rh &= seq(parn([ef2, af2, c3, ef3]),
+          parn([f2, af2, df3, f3]),
+          (parn([df2, ef2, g2]) | parn([c3, ef3], DEN) & parn([bf2, df3], SN)),
+          parn([c2, ef2, g2, c3]))
+lh &= seq(parn([af1, af2]), parn([df1, df2]), parn([ef1, ef2]), parn([af1, af2]))
 
 # mm 3
-rh &= seq(ch(d2, f2, b2, d3),
-          ch(e2, g2, bf2, c3, e3),
-          (ch(af2, c3) | note(g3, DEN) & note(f3, SN)),
-          ch(g2, c3, ef3))
-lh &= seq(ch(g1, g2), ch(c0, c1), ch(f0, f1), ch(c1, c2))
+rh &= seq(parn([d2, f2, b2, d3]),
+          parn([e2, g2, bf2, c3, e3]),
+          (parn([af2, c3]) | n(g3, DEN) & n(f3, SN)),
+          parn([g2, c3, ef3]))
+lh &= seq(parn([g1, g2]), parn([c0, c1]), parn([f0, f1]), parn([c1, c2]))
 
 # mm 4
-rh &= seq(ch(fs2, c3, d3),
-          ch(g2, b2, d3, g3),
-          (ch(c3, d3, fs3) | note(b3, DEN) & note(a3, SN)),
-          ch(bf2, d3, g3))
-lh &= seq(ch(d1, a1, d2), ch(g0, g1), ch(d0, d1), ch(g0, g1))
+rh &= seq(parn([fs2, c3, d3]),
+          parn([g2, b2, d3, g3]),
+          (parn([c3, d3, fs3]) | n(b3, DEN) & n(a3, SN)),
+          parn([bf2, d3, g3]))
+lh &= seq(parn([d1, a1, d2]), parn([g0, g1]), parn([d0, d1]), parn([g0, g1]))
 
 # mm 5
-rh &= seq(ch(ef3, g3, ef4),
-          ch(ef3, af3, ef4),
-          (ch(d3, d4) | note(af3, DEN) & note(fs3, SN)),
-          ch(d3, af3, d4))
-lh &= seq(ch(c1, c2), ch(c2, c3), ch(b1, b2), ch(bf1, bf2))
+rh &= seq(parn([ef3, g3, ef4]),
+          parn([ef3, af3, ef4]),
+          (parn([d3, d4]) | n(af3, DEN) & n(fs3, SN)),
+          parn([d3, af3, d4]))
+lh &= seq(parn([c1, c2]), parn([c2, c3]), parn([b1, b2]), parn([bf1, bf2]))
 
 # mm 6
-rh &= seq(ch(c3, g3, c4),
-          ch(c3, d3, fs3, d4),
-          (ch(d3, g3, b3, :dur => DEN) & ch(c3, a3, :dur => SN)),
-          ch(b2, d3, g3))
-lh &= seq(ch(a1, a2), ch(af1, af2), ch(g1, g2), ch(f1, f2))
+rh &= seq(parn([c3, g3, c4]),
+          parn([c3, d3, fs3, d4]),
+          (parn([d3, g3, b3], DEN) & parn([c3, a3], SN)),
+          parn([b2, d3, g3]))
+lh &= seq(parn([a1, a2]), parn([af1, af2]), parn([g1, g2]), parn([f1, f2]))
 
 # mm 7
-rh &= seq(ch(c3, g3, c4),
-          ch(af2, c3, af3),
-          (ch(g2, d3) | note(g3, DEN) & note(f3, SN)),
-          ch(g2, c3, ef3))
-lh &= seq(ch(ef1, ef2), ch(f1, f2), ch(b0, b1), ch(c1, c2))
+rh &= seq(parn([c3, g3, c4]),
+          parn([af2, c3, af3]),
+          (parn([g2, d3]) | n(g3, DEN) & n(f3, SN)),
+          parn([g2, c3, ef3]))
+lh &= seq(parn([ef1, ef2]), parn([f1, f2]), parn([b0, b1]), parn([c1, c2]))
 
 # mm 8
-rh &= seq(ch(ef2, af2, c3, ef3),
-          ch(f2, af2, df3, f3),
-          (ch(f2, g2, b2) | note(ef3, DEN) & note(d3, SN)),
-          ch(ef2, g2, c3))
-lh &= seq(ch(af0, af1), ch(df0, df1), ch(g0, g1), ch(c0, c1))
+rh &= seq(parn([ef2, af2, c3, ef3]),
+          parn([f2, af2, df3, f3]),
+          (parn([f2, g2, b2]) | n(ef3, DEN) & n(d3, SN)),
+          parn([ef2, g2, c3]))
+lh &= seq(parn([af0, af1]), parn([df0, df1]), parn([g0, g1]), parn([c0, c1]))
 
 # mm 9
-rh &= seq(ch(ef3, g3, ef4),
-          ch(ef3, af3, ef3),
-          (ch(d3, d4) | note(af3, DEN) & note(fs3, SN)),
-          ch(d3, g3, d4))
-lh &= seq(ch(c1, c2), ch(c2, c3), ch(b1, b2), ch(bf1, bf2))
+rh &= seq(parn([ef3, g3, ef4]),
+          parn([ef3, af3, ef3]),
+          (parn([d3, d4]) | n(af3, DEN) & n(fs3, SN)),
+          parn([d3, g3, d4]))
+lh &= seq(parn([c1, c2]), parn([c2, c3]), parn([b1, b2]), parn([bf1, bf2]))
 
 # mm 10
-rh &= seq(ch(c3, g3, c4),
-          ch(c3, d3, fs3, d4),
-          (ch(d3, g3, b3, :dur => DEN) & ch(c3, a3, :dur => SN)),
-          ch(b2, d3, g3))
-lh &= seq(ch(a1, a2), ch(af1, af2), ch(g1, g2), ch(f1, f2))
+rh &= seq(parn([c3, g3, c4]),
+          parn([c3, d3, fs3, d4]),
+          (parn([d3, g3, b3], DEN) & parn([c3, a3], SN)),
+          parn([b2, d3, g3]))
+lh &= seq(parn([a1, a2]), parn([af1, af2]), parn([g1, g2]), parn([f1, f2]))
 
 # mm 11
-rh &= seq(ch(c3, g3, c4),
-          ch(af2, c3, af3),
-          (ch(g2, d3) | note(g3, DEN) & note(f3, SN)),
-          ch(g2, c3, ef3))
-lh &= seq(ch(ef1, ef2), ch(f1, f2), ch(b0, b1), ch(c1, c2))
+rh &= seq(parn([c3, g3, c4]),
+          parn([af2, c3, af3]),
+          (parn([g2, d3]) | n(g3, DEN) & n(f3, SN)),
+          parn([g2, c3, ef3]))
+lh &= seq(parn([ef1, ef2]), parn([f1, f2]), parn([b0, b1]), parn([c1, c2]))
 
 # mm 12
-rh &= seq(ch(ef2, af2, c3, ef3),
-          ch(f2, af2, df3, f3),
-          (ch(f2, g2, b2) | note(ef3, DEN) & note(d3, SN)),
-          ch(ef2, g2, c3))
-lh &= seq(ch(af0, af1), ch(df0, df1), ch(g0, g1), ch(c0, c1))
+rh &= seq(parn([ef2, af2, c3, ef3]),
+          parn([f2, af2, df3, f3]),
+          (parn([f2, g2, b2]) | n(ef3, DEN) & n(d3, SN)),
+          parn([ef2, g2, c3]))
+lh &= seq(parn([af0, af1]), parn([df0, df1]), parn([g0, g1]), parn([c0, c1]))
 
 # mm 13
-rh &= ch(c3, ef3, g3, c4, :dur => 4)
-lh &= ch(c2, g2, :dur => 4)
+rh &= parn([c3, ef3, g3, c4], 4)
+lh &= parn([c2, g2], 4)
 
-score = rh | lh
+final = rh | lh
 # Not all applications agree on where to begin numbering pitches. Uncomment the
 # following line if it is heard an octave too low.
-# score = (rh | lh).transpose(12)
+final.transpose(12)
 end
 
 SMFWriter.new(:tempo => 80).
