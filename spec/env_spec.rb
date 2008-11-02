@@ -1,13 +1,11 @@
 require File.join( File.dirname(__FILE__), 'spec_helper')
 
 describe Env do
-  it "should transform attribute values based on their phase" do
-    score = s( seq(n([c4, e4, g4], 1, :amp => 0.5)),
-                :amp => env { |value, phase| value * Math.sin(phase) } )
-    timeline = score.to_timeline
-    timeline[0].amp.should == 0.0
-    timeline[1].amp.should be_close(0.1636, 0.0001)
-    timeline[2].amp.should be_close(0.3092, 0.0001)
+  def cresc(factor, score)
+    s(score, :velocity => env { |vel, ph|
+        multiplier = (factor - 1.0) * (1.0 + ph)
+        (vel * multiplier).to_i
+      })
   end
   
   it "can be used to implement various transforms" do
@@ -19,10 +17,12 @@ describe Env do
     timeline[2].velocity.should == 106
   end
   
-  def cresc(factor, score)
-    s(score, :velocity => env { |vel, ph|
-        multiplier = (factor - 1.0) * (1.0 + ph)
-        (vel * multiplier).to_i
-      })
+  it "can be nested" do
+    score = cresc(2,
+              seqn([c4, e4, g4], 1, :velocity => 40) &
+              cresc(2,
+                seqn([c4, e4, g4], 1, :velocity => 40)))
+    timeline = score.to_timeline
+    timeline.map(&:velocity).should == [40, 46, 53, 60, 88, 121]
   end
 end
