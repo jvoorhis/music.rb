@@ -79,7 +79,7 @@ module Music
       def initialize(left, right)
         @left, @right = left, right
         @duration = @left.duration + @right.duration
-        @final_onset = @left.duration
+        @final_onset = @left.duration + @right.final_onset
       end
       
       def ==(other)

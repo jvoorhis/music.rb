@@ -18,9 +18,9 @@ describe Env do
   it "can be nested" do
     score = cresc(1.5,
               sn([c4, e4, g4], 1, :velocity => 40) &
-              cresc(1.5,
+              cresc(2,
                 sn([c4, e4, g4], 1, :velocity => 40)))
     timeline = score.to_timeline
-    timeline.map(&:velocity).should == [40, 47, 53, 60, 83, 110]
+    timeline.map(&:velocity).should == [40, 44, 48, 52, 84, 120]
   end
 end
