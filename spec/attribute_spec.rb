@@ -49,3 +49,10 @@ describe Note do
   end
   it_should_behave_like "all attributes implementations"
 end
+
+describe Controller do
+  before(:all) do
+    @object = Controller.new(60, 1)
+  end
+  it_should_behave_like "all attributes implementations"
+end

@@ -2,19 +2,23 @@ module Music
   module Interpreter
     
     class Base
-      def self.eval(music)
-        new.eval(music)
+      def self.eval(score)
+        new.eval(score)
       end
       
-      def eval(music, context = nil)
-        context ||= Context.init( Scope.new(0, music.duration, {}) )
-        music.eval(self, context)
+      def eval(score, context = nil)
+        context ||= Context.init( Scope.new(0, score.duration, {}) )
+        score.eval(self, context)
       end
       
       # Default implementation: groups have no direct musical interpretation,
       # but they allow inheritence of attributes and evaluation of Envs.
-      def eval_group(music, context)
-        music
+      def eval_group(score, context)
+        score
+      end
+      
+      def eval_controller(score, context)
+        score
       end
     end
     

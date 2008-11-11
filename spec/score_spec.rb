@@ -179,6 +179,8 @@ describe Rest do
     @object = Rest.new(1, :fermata => true)
   end
   
+  it_should_behave_like "all scores"
+  
   it "should have a duration" do
     @object.duration.should == 1
   end
@@ -192,6 +194,8 @@ describe Note do
   before(:all) do
     @object = Note.new(60, 1, :dynamic => :mf)
   end
+  
+  it_should_behave_like "all scores"
   
   it "should have a pitch" do
     @object.pitch.should == 60
@@ -218,6 +222,14 @@ describe Note do
       Score::Base.allocate
     ].each { |val| val.should_not == @object }
   end
+end
+
+describe Controller do
+  before(:all) do
+    @object = Controller.new(:tempo, 120)
+  end
+  
+  it_should_behave_like "all scores"
 end
 
 describe "All ScoreObjects" do
@@ -263,15 +275,6 @@ describe "Group of reference duration" do
   before(:all) do
     @duration = 4
     @object = group( note(64, 2) & note(64, 2) | note(60, 4), {} )
-  end
-  
-  it_should_behave_like "all scores of reference duration"
-end
-
-describe "Item of reference duration" do
-  before(:all) do
-    @duration = 4
-    @object = note(60, 4)
   end
   
   it_should_behave_like "all scores of reference duration"

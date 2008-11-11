@@ -235,7 +235,7 @@ module Music
       end
       
       def read(name)
-        @attributes[name]
+        attributes[name]
       end
       
       def take(time)
@@ -251,6 +251,9 @@ module Music
           update(:duration, (duration - time).clip(0..duration))
         end
       end
+      
+      # Default implementation
+      def transpose(interval) self end
     end
     
     # Remain silent for the duration.
@@ -268,16 +271,14 @@ module Music
         end
       end
       
-      def transpose(interval) self end
+      def update(name, val)
+        a = attributes.merge(name => val)
+        d = a.delete(:duration)
+        self.class.new(d, a)
+      end
       
       def eval(interpreter, context)
         interpreter.eval_rest(self, context)
-      end
-      
-      def update(name, val)
-        a = @attributes.merge(name => val)
-        d = a[:duration]
-        self.class.new(d, a)
       end
     end
     
@@ -318,6 +319,33 @@ module Music
           p1, d1 = c1.attributes.values_at(:pitch, :duration)
           [self.class.new(p1, d1, c1.attributes), c1]
         end
+    end
+    
+    class Controller < ScoreObject
+      include Instant
+      attr_reader :attributes
+      
+      def initialize(name, value, attrs = {})
+        @attributes = attrs.merge(:name => name, :value => value)
+      end
+      
+      def ==(other)
+        case other
+          when Controller
+            [name, value] == [other.name, other.value]
+          else false
+        end
+      end
+      
+      def update(key, val)
+        a = attributes.merge(key => val)
+        n, v = attributes.values_at(:name, :value)
+        self.class.new(n, v, a)
+      end
+      
+      def eval(interpreter, context)
+        interpreter.eval_controller(self, context)
+      end
     end
   end
 end

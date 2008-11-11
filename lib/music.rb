@@ -129,6 +129,7 @@ them into a new Score.
   def pn(pit, dur = 1, attrs = {})
     p(n(pit, dur, attrs))
   end
+
 =begin
 
 Attribute generators.
@@ -139,4 +140,16 @@ under which a score is interpreted.
 =end
   
   def env(&fn) Env.new(&fn) end
+
+=begin
+
+Controllers.
+
+Controllers are instructions to the performer. They have a duration of zero.
+
+=end
+  
+  def ctl(name, value, attrs = {})
+    Controller.new(name, value, attrs)
+  end
 end

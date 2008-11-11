@@ -26,4 +26,11 @@ module Music
     # Default implementation; assume most items are irreversible.
     def reverse; self end
   end
+  
+  # A mixin for temporal objects with a fixed duration of zero.
+  module Instant
+    def duration; 0 end
+    def take(t) self end
+    def drop(t) self end
+  end
 end
