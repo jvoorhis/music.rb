@@ -22,13 +22,14 @@ module Music
       
       private
         def write_functions(file)
+          return if @functions.empty?
           @functions.each do |(n, t, sz, f, *args)|
             file.write("f %i\t%i\t%i\t%i%s\n" % [
               n, t, sz, f,
               args.empty? ? "" : args.map { |a| "\t#{a}" }.join
             ])
           end
-          file.write("\n") unless @functions.empty?
+          file.write("\n")
         end
         
         def write_instruments(file, timeline)
