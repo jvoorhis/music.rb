@@ -1,8 +1,5 @@
 module Music
   module Csound
-    
-    def gen(*args) args end
-    
     class ScoreWriter
       attr_reader :instruments, :path
       

@@ -9,8 +9,12 @@ describe ScoreWriter do
                 sn([c4, g4, c5]) | sn([c3, g2, c2]),
                 :instrument => 101)
     @writer = ScoreWriter.new(
-                :f => [ gen(1, 0, 0, 1, "example.wav", 0, 0, 0) ],
-                :i => { 101 => [:pitch] })
+                :f => [
+                  [1, 0, 0, 1, "example.wav", 0, 0, 0]
+                ],
+                :i => {
+                  101 => [:pitch]
+                })
   end
   
   it "should write a valid Csound score" do
