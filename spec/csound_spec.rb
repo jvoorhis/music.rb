@@ -21,7 +21,7 @@ describe ScoreWriter do
     File.should_receive(:open).and_yield(f = StubFile.new)
     @writer.write(@score)
     f.buf.should == <<SCO
-f 1	0	0	1	example.wav	0	0	0
+f 1	0	0	1	"example.wav"	0	0	0
 
 i 101	0	1	8.00
 i 101	0	1	7.00

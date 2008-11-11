@@ -23,7 +23,7 @@ module Music
           @functions.each do |(n, t, sz, f, *args)|
             file.write("f %i\t%i\t%i\t%i%s\n" % [
               n, t, sz, f,
-              args.empty? ? "" : args.map { |a| "\t#{a}" }.join
+              args.empty? ? "" : args.map { |a| "\t#{a.to_csound}" }.join
             ])
           end
           file.write("\n")
@@ -57,6 +57,10 @@ module Music
     
     class ::Float
       alias to_csound round
+    end
+    
+    class ::String
+      alias to_csound inspect
     end
     
     class ::Music::Pitch
