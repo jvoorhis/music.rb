@@ -1,22 +1,36 @@
 module Music
   module Csound
     
+    def gen(*args) args end
+    
     class ScoreWriter
       attr_reader :instruments, :path
       
       def initialize(options = {})
         @path        = options[:path]
-        @instruments = options.fetch(:instruments, {})
+        @functions   = options[:f] || options[:functions]   || []
+        @instruments = options[:i] || options[:instruments] || {}
       end
       
       def write(timeline_or_score)
         timeline = timeline_or_score.to_timeline
         File.open(path, 'w') do |f|
+          write_functions(f)
           write_instruments(f, timeline)
         end
       end
       
       private
+        def write_functions(file)
+          @functions.each do |(n, t, sz, f, *args)|
+            file.write("f %i\t%i\t%i\t%i%s\n" % [
+              n, t, sz, f,
+              args.empty? ? "" : args.map { |a| "\t#{a}" }.join
+            ])
+          end
+          file.write("\n") unless @functions.empty?
+        end
+        
         def write_instruments(file, timeline)
           timeline.each_with_time do |obj, time|
             inst = obj.read(:instrument)
