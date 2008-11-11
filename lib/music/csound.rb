@@ -11,7 +11,7 @@ module Music
       
       def write(timeline_or_score)
         timeline = timeline_or_score.to_timeline
-        open(path, 'w') do |f|
+        File.open(path, 'w') do |f|
           write_instruments(f, timeline)
         end
       end
@@ -56,18 +56,4 @@ module Music
       end
     end
   end
-end
-
-if __FILE__ == $0
-  include Music
-  include Music::Csound
-  
-  score = group [n(c4), n(e4), n(g4), n(c5)].inject(&:&), :instrument => 1
-  writer = ScoreWriter.new(
-    :path => "score.sco",
-    :instruments => {
-      1 => [:pitch],
-    }
-  )
-  writer.write(score)
 end
