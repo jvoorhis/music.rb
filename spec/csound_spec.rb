@@ -18,7 +18,7 @@ describe ScoreWriter do
   end
   
   it "should write a valid Csound score" do
-    File.should_receive(:open).and_yield(f = MockFile.new)
+    File.should_receive(:open).and_yield(f = StubFile.new)
     @writer.write(@score)
     f.buf.should == <<SCO
 f 1	0	0	1	example.wav	0	0	0
@@ -32,7 +32,7 @@ i 101	2	1	6.00
 SCO
   end
   
-  class MockFile
+  class StubFile
     def buf; @buf ||= "" end
     def write(str) buf << str end
   end
