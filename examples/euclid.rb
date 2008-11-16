@@ -8,6 +8,7 @@ include Music
 module Euclid
   module_function
   def euclid(k, n)
+    raise ArgumentError, "`k' must be less than `n'" unless k < n
     bjorklund Array.new(k, [true]) + Array.new(n - k, [false])
   end
   
@@ -40,13 +41,6 @@ module Euclid
     end
     res
   end
-end
-
-def cresc(factor, score)
-  group(score,
-    :velocity => env { |v0, ph|
-       v1 = (v0 + ph * ((v0 * factor) - v0)).round # Linear interpolation
-       v1.clip(0..127) })
 end
 
 def kick(*args)
