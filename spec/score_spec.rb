@@ -226,13 +226,13 @@ end
 
 describe Controller do
   before(:all) do
-    @object = Controller.new(:tempo, 120)
+    @object = Controller.new(:tempo, :tempo => 120)
   end
   
   it_should_behave_like "all scores"
-
+  
   it "should carry associated data" do
-    @object.data.should == [120]
+    @object.tempo.should == 120
   end
 end
 

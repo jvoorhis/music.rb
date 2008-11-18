@@ -107,7 +107,7 @@ end
 describe Controller do
   before(:all) do
     @dur = 0
-    @object = ctl(:tempo, 120)
+    @object = ctl(:tempo, :tempo => 120)
   end
   it_should_behave_like "all temporal objects"
 end

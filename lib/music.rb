@@ -149,7 +149,7 @@ Controllers are instructions to the performer. They have a duration of zero.
 
 =end
   
-  def ctl(name, value, attrs = {})
-    Controller.new(name, value, attrs)
+  def ctl(name, attrs = {})
+    Controller.new(name, attrs)
   end
 end

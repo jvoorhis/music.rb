@@ -52,7 +52,7 @@ end
 
 describe Controller do
   before(:all) do
-    @object = Controller.new(60, 1)
+    @object = Controller.new(:cc1, :value => 64)
   end
   it_should_behave_like "all attributes implementations"
 end

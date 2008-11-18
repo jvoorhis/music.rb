@@ -64,9 +64,9 @@ module Music
         
         track << case ctl.name.to_s
           when 'tempo'
-            SetTempo.new(offset, ctl.data[0])
+            SetTempo.new(offset, bpm_to_qn_per_usec(ctl.tempo))
           when /^cc(0?[1-9]|1[0-6])$/
-            ControlChange.new(offset, channel, $1, ctl.data[0])
+            ControlChange.new(offset, channel, $1, ctl.value)
         end
       end
   end
