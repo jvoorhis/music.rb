@@ -14,20 +14,16 @@ module Music
     def track(arrangement_or_timeline, options = {})
       timeline = arrangement_or_timeline.to_timeline
       track    = Track.new
-      channel  = options.fetch(:channel, 1)
       name     = options.fetch(:name, gen_seq_name)
       
       track << SequenceName.new(0, name)
       track << @tempo
       
       timeline.each_with_time do |note, time|
-        attack   = @time.ppqn(time)
-        release  = attack + @time.ppqn(note.duration)
-        pitch    = note.pitch.to_i
-        velocity = note.attributes.fetch(:velocity, 80)
-        
-        track  << NoteOn.new(attack, channel, pitch, velocity)
-        track  << NoteOff.new(release, channel, pitch, velocity)
+        case note
+          when Note: write_note(track, note, time)
+          when Controller: write_controller(track, note, time)
+        end
       end
       
       @seq << track
@@ -49,6 +45,29 @@ module Music
       
       def bpm_to_qn_per_usec(bpm)
         (60_000_000.0 / bpm).to_i
+      end
+      
+      def write_note(track, note, time)
+        attack   = @time.ppqn(time)
+        release  = attack + @time.ppqn(note.duration)
+        pitch    = note.pitch.to_i
+        velocity = note.attributes.fetch(:velocity, 80)
+        channel  = note.read(:channel) || 1
+        
+        track << NoteOn.new(attack, channel, pitch, velocity)
+        track << NoteOff.new(release, channel, pitch, velocity)
+      end
+      
+      def write_controller(track, ctl, time)
+        offset  = @time.ppqn(time)
+        channel = ctl.read(:channel) || 1
+        
+        track << case ctl.name.to_s
+          when 'tempo'
+            SetTempo.new(offset, ctl.data[0])
+          when /^cc(0?[1-9]|1[0-6])$/
+            ControlChange.new(offset, channel, $1, ctl.data[0])
+        end
       end
   end
 end

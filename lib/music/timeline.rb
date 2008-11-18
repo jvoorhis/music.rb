@@ -75,5 +75,9 @@ module Music
     def eval_rest(rest, context)
       Timeline.new([])
     end
+
+    def eval_controller(ctl, context)
+      Timeline.new([Event.new(context.time, ctl)])
+    end
   end
 end

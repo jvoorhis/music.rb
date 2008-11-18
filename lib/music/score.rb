@@ -325,8 +325,8 @@ module Music
       include Instant
       attr_reader :attributes
       
-      def initialize(name, value, attrs = {})
-        @attributes = attrs.merge(:name => name, :value => value)
+      def initialize(name, data, attrs = {})
+        @attributes = attrs.merge(:name => name, :data => Array(data))
       end
       
       def ==(other)

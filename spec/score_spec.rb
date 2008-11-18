@@ -230,6 +230,10 @@ describe Controller do
   end
   
   it_should_behave_like "all scores"
+
+  it "should carry associated data" do
+    @object.data.should == [120]
+  end
 end
 
 describe "All ScoreObjects" do

@@ -21,5 +21,9 @@ module Music
     def eval_rest(rest, context)
       "rest(#{rest.duration})"
     end
+
+    def eval_controller(ctl, context)
+      "ctl(#{ctl.name}, #{ctl.data})"
+    end
   end
 end
