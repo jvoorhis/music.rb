@@ -1,8 +1,9 @@
 require File.join( File.dirname(__FILE__), 'spec_helper')
 require 'rational'
-require 'music/midi_time'
+require 'music/midi'
 
 include Music
+include Music::MIDI
 
 describe Music, "midi interface" do
   

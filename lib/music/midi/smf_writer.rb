@@ -1,5 +1,4 @@
 require 'smf'
-require 'music/midi_time'
 
 module Music
   module MIDI

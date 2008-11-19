@@ -1,3 +1,4 @@
+require 'music/midi/midi_time'
 require 'music/midi/smf_writer'
 
 module Music
