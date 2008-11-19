@@ -2,8 +2,10 @@
 # Inspired by http://ruinwesen.com/blog?id=216
 
 require 'music'
+require 'music/midi'
 
 include Music
+include Music::MIDI
 
 module Euclid
   module_function
@@ -61,7 +63,7 @@ def tick
 end
 
 def score
-  ks = rhythm(3, 8) & rhythm(7, 8) & rhythm(5, 8) & rhythm(7, 8)
+  ks = rhythm(2, 4) & rhythm(3, 12) & rhythm(2, 3) & rhythm(3, 13)
   ss = tick * 4
   ks | ss
 end

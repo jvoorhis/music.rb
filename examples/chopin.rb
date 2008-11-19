@@ -3,8 +3,10 @@
 # Transcribed from http://www.mutopiaproject.org/ftp/ChopinFF/O28/Chop-28-20/Chop-28-20-let.pdf
 
 require 'music'
+require 'music/midi'
 
 include Music
+include Music::MIDI
 
 def score
 # mm 1
@@ -105,4 +107,3 @@ end
 SMFWriter.new(:tempo => 40).
   track(score, :name => 'Op. 20, No. 2').
   save('chopin-op28-no20')
-

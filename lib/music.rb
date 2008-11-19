@@ -23,7 +23,6 @@ require 'music/interpreter'
 require 'music/score'
 require 'music/env'
 require 'music/timeline'
-require 'music/smf_writer'
 
 module Music
   include Duration
