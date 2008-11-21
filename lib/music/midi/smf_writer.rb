@@ -51,7 +51,7 @@ module Music
         attack   = @time.ppqn(time)
         release  = attack + @time.ppqn(note.duration)
         pitch    = note.pitch.to_i
-        velocity = note.attributes.fetch(:velocity, 80)
+        velocity = note.attributes.fetch(:velocity, 64)
         channel  = note.read(:channel) || 1
         
         track << NoteOn.new(attack, channel, pitch, velocity)
