@@ -9,70 +9,70 @@ module Music
     def tempo(bpm)
       ctl(:tempo, :tempo => bpm)
     end
-
+    
     # Standard midi control changes
-    def cc1(value)
-      ctl(:cc1, :value => value)
+    def cc1(value, attrs = {})      
+      ctl(:cc1, attrs.merge(:value => value))
     end
     
-    def cc2(value)
-      ctl(:cc2, :value => value)
+    def cc2(value, attrs = {})      
+      ctl(:cc2, attrs.merge(:value => value))
     end
     
-    def cc3(value)
-      ctl(:cc3, :value => value)
+    def cc3(value, attrs = {})      
+      ctl(:cc3, attrs.merge(:value => value))
     end
     
-    def cc4(value)
-      ctl(:cc4, :value => value)
+    def cc4(value, attrs = {})      
+      ctl(:cc4, attrs.merge(:value => value))
     end
     
-    def cc5(value)
-      ctl(:cc5, :value => value)
+    def cc5(value, attrs = {})      
+      ctl(:cc5, attrs.merge(:value => value))
     end
     
-    def cc6(value)
-      ctl(:cc6, :value => value)
+    def cc6(value, attrs = {})      
+      ctl(:cc6, attrs.merge(:value => value))
     end
     
-    def cc7(value)
-      ctl(:cc7, :value => value)
+    def cc7(value, attrs = {})      
+      ctl(:cc7, attrs.merge(:value => value))
     end
     
-    def cc8(value)
-      ctl(:cc8, :value => value)
+    def cc8(value, attrs = {})      
+      ctl(:cc8, attrs.merge(:value => value))
     end
     
-    def cc9(value)
-      ctl(:cc9, :value => value)
+    def cc9(value, attrs = {})      
+      ctl(:cc9, attrs.merge(:value => value))
     end
     
-    def cc10(value)
-      ctl(:cc10, :value => value)
+    def cc10(value, attrs = {})      
+      ctl(:cc10, attrs.merge(:value => value))
     end
     
-    def cc11(value)
-      ctl(:cc11, :value => value)
+    def cc11(value, attrs = {})      
+      ctl(:cc11, attrs.merge(:value => value))
     end
     
-    def cc12(value)
-      ctl(:cc12, :value => value)
+    def cc12(value, attrs = {})      
+      ctl(:cc12, attrs.merge(:value => value))
     end
     
-    def cc13(value)
-      ctl(:cc13, :value => value)
+    def cc13(value, attrs = {})      
+      ctl(:cc13, attrs.merge(:value => value))
     end
     
-    def cc14(value)
-      ctl(:cc14, :value => value)
+    def cc14(value, attrs = {})      
+      ctl(:cc14, attrs.merge(:value => value))
     end
     
-    def cc15(value)
-      ctl(:cc15, :value => value)
+    def cc15(value, attrs = {})      
+      ctl(:cc15, attrs.merge(:value => value))
     end
     
-    def cc16(value)
-      ctl(:cc16, :value => value)
+    def cc16(value, attrs = {})      
+      ctl(:cc16, attrs.merge(:value => value))
     end
   end
 end

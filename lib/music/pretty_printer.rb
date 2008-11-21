@@ -23,7 +23,7 @@ module Music
     end
 
     def eval_controller(ctl, context)
-      "ctl(#{ctl.name}, #{ctl.data})"
+      "ctl(#{ctl.name}, #{ctl.value})"
     end
   end
 end
