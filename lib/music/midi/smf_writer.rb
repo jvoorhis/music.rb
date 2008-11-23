@@ -62,11 +62,11 @@ module Music
         offset  = @time.ppqn(time)
         channel = ctl.read(:channel) || 1
         
-        track << case ctl.name.to_s
-          when 'tempo'
+        track << case ctl.name
+          when :tempo
             SetTempo.new(offset, bpm_to_qn_per_usec(ctl.tempo))
-          when /^cc(0?[1-9]|1[0-6])$/
-            ControlChange.new(offset, channel, $1, ctl.value)
+          when :cc
+            ControlChange.new(offset, channel, ctl.number, ctl.value)
         end
       end
     end
