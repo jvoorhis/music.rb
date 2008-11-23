@@ -9,7 +9,8 @@ module Music
       def self.play(score, options)
         player = new(options)
         player.play(score, true)
-        player.join
+        player.join if options.fetch(:block, true)
+        nil
       end
       
       attr :timer
