@@ -12,6 +12,21 @@ shared_examples_for "all attributes implementations" do
     o1.read(:arbitrary).should == 42
     o1.arbitrary.should == o1.read(:arbitrary)
   end
+
+  it "can fetch a value" do
+    o1 = @object.update(:arbitrary, 42)
+    o1.arbitrary.should == 42
+  end
+  
+  it "can fetch a value with a default" do
+    @object.arbitrary.should be_nil
+    @object.fetch(:arbitrary, 42).should == 42
+  end
+  
+  it "can execute a default block" do
+    @object.arbitrary.should be_nil
+    @object.fetch(:arbitrary) { 42 }.should == 42
+  end
   
   it "has attribute mutators" do
     o1 = @object.update(:arbitrary, 42)

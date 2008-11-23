@@ -15,5 +15,13 @@ module Music
         super
       end
     end
+
+    def fetch(name, default = nil, &block)
+      case
+        when val = read(name): val
+        when block_given?: yield
+        else default
+      end
+    end
   end
 end
