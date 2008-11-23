@@ -57,11 +57,12 @@ module Music
           @timer.at(rel) { @midi.note_off(pit, chn, 0) }
         end
 
-        def play_controller(note, time, ctl)
-          case obj.name
+        def play_controller(now, time, ctl)
+          case ctl.name
             when :cc
-              @timer.at offset(time) do
-                @midi.control_change(obj.number, obj.channel, obj.value)
+              att = now + offset(time)
+              @timer.at(att) do
+                @midi.control_change(ctl.number, ctl.channel, ctl.value)
               end
           end
         end
