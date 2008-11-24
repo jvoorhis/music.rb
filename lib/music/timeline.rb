@@ -14,7 +14,8 @@ module Music
     end
     
     def <=>(other)
-      time <=> other.time
+      rank = lambda { |obj| case obj when Controller: 0 else 1 end }
+      [time.to_f, rank[object]] <=> [other.time.to_f, rank[other.object]]
     end
   end
   
@@ -26,10 +27,10 @@ module Music
     
     def self.[](*events) new(events.flatten) end
     
-    def initialize(events) @events = events end
+    def initialize(events) @events = events.sort end
     
     def merge(other)
-      self.class.new((events + other.events).sort)
+      self.class.new(events + other.events)
     end
     
     def [](i)
