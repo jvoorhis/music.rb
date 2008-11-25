@@ -6,16 +6,15 @@ module Music
       attr_reader :rate, :queue, :thread
       
       def initialize(options = {})
-        @tempo  = options.fetch(:tempo, 120)
-        @rate   = options.fetch(:rate, 0.001)
-        @queue  = []
-        @epoch  = Time.now.to_f
-        @phase  = 0.0
+        self.tempo = options.fetch(:tempo, 120)
+        @rate      = options.fetch(:rate, 0.001)
+        @sleep_for = rate / 10.0
+        @queue     = []
+        @phase     = 0.0
+        @origin    = @time = Time.now.to_f
+        
         @thread = Thread.new do
-          loop do
-            dispatch
-            sleep(@rate)
-          end
+          loop { dispatch; advance }
         end
       end
       
@@ -23,15 +22,26 @@ module Music
       def at(time, &task)
         @queue.push([time.to_f, task])
       end
+
+      def tempo=(bpm)
+        @tempo = bpm / 60.0
+      end
       
       private
+        # Advance the internal clock time and spin until it is reached.
+        def advance
+          @time += @rate
+          loop do
+            break if Time.now.to_f > @time
+            sleep(@sleep_for) # Don't saturate the CPU
+          end
+        end
+        
         def dispatch
-          now     = Time.now.to_f
-          elapsed = now - @epoch
-          @epoch  = now
-          @phase  += (elapsed * @tempo / 60.0)
+          @phase  += (@time - @origin) * @tempo
+          @origin  = @time
           ready, @queue = @queue.partition { |time, task| time <= @phase }
-          ready.each { |time, task| task[time] }
+          ready.each { |time, task| task.call(time) }
         end
     end
   end
