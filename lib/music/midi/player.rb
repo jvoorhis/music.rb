@@ -1,5 +1,6 @@
 require 'midiator'
-require 'music/midi/scheduler'
+require 'rubygems'
+require 'gamelan'
 
 module Music
   module MIDI
@@ -14,8 +15,12 @@ module Music
       end
       
       def initialize(options = {})
-        @options = options
-        @midi    = Interface.new
+        @options   = options
+        @scheduler = Gamelan::Scheduler.new(
+                       :rate  => @options[:rate],
+                       :tempo => @options[:tempo])
+        @midi      = Interface.new
+        
         if driver = options[:driver]
           @midi.use(driver)
         else
@@ -25,22 +30,19 @@ module Music
       
       def play(timeline_or_score, blocking = false)
         timeline  = timeline_or_score.to_timeline
-        scheduler = Scheduler.new(
-                       :resolution => @options[:resolution],
-                       :tempo      => @options[:tempo])
-        
         timeline.each_with_time do |obj, time|
           case obj
-            when Note: play_note(scheduler, time, obj)
-            when Controller: play_controller(scheduler, time, obj)
+            when Note: play_note(@scheduler, time, obj)
+            when Controller: play_controller(@scheduler, time, obj)
           end
         end
+        @scheduler.run
         
         if blocking
           last = timeline.events.last
           shutdown_time = last.time + last.object.duration
-          scheduler.at(shutdown_time) { scheduler.thread.kill }
-          scheduler.thread.join
+          @scheduler.at(shutdown_time) { @scheduler.stop }
+          @scheduler.join
         end
         nil
       end
@@ -55,7 +57,7 @@ module Music
           scheduler.at(att) { @midi.note_on(pit, chn, vel) }
           scheduler.at(rel) { @midi.note_off(pit, chn, 0) }
         end
-
+        
         def play_controller(scheduler, time, ctl)
           case ctl.name
             when :cc
@@ -63,7 +65,7 @@ module Music
                 @midi.control_change(ctl.number, ctl.channel, ctl.value)
               }
             when :tempo
-              scheduler.at(time) { scheduler.tempo = ctl.tempo }
+              scheduler.at(time) { @scheduler.tempo = ctl.tempo }
           end
         end
     end

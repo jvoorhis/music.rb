@@ -1,5 +1,4 @@
 # Encoding of Chopin's Op. 28, No 20.
-# 'Funeral March'
 # Transcribed from http://www.mutopiaproject.org/ftp/ChopinFF/O28/Chop-28-20/Chop-28-20-let.pdf
 
 require 'music'
@@ -104,6 +103,11 @@ final = rh | lh
 final.transpose(12)
 end
 
+# Write a Standard MIDI File
 SMFWriter.new(:tempo => 40).
   track(score, :name => 'Op. 20, No. 2').
   save('chopin-op28-no20')
+
+# Play using the builtin synth on OS X
+# require 'music/midi/player'
+# MIDI::Player.play(score, :tempo => 56, :driver => :dls_synth)
