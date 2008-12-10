@@ -1,5 +1,5 @@
-require 'midiator'
 require 'rubygems'
+require 'midiator'
 require 'gamelan'
 
 module Music
@@ -50,7 +50,9 @@ module Music
       private
         def play_note(scheduler, time, note)
           att = time
-          rel = time + note.duration
+          # hack to ensure noteoffs are performed before ensuing noteons.
+          # FIXME: implement priorities in the scheduler.
+          rel = time + note.duration - scheduler.rate
           chn = note.fetch(:channel, 1)
           vel = note.fetch(:velocity, 64)
           pit = note.pitch.to_i
